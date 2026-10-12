@@ -18,8 +18,9 @@ import type { DeliveryProfile } from '../Modal/deliveryProfile'
 /**
  * Форма адреса курьера — разворачивается прямо в теле страницы, без
  * попапа и без карты (по макету инлайн-концепта, в отличие от модального).
- * Самовывоз в неё не заходит: клик по сегменту Pickup сразу открывает
- * Cc3InlinePickupDialog, у него своя карта и свой список пунктов.
+ * Самовывоз в неё не заходит: свитчер способа стоит над блоком доставки
+ * целиком (см. Cc3InlineDeliverySection), а выбор пункта открывает
+ * Cc3InlinePickupDialog — у него своя карта и свой список пунктов.
  */
 const props = defineProps<{
   editProfile?: DeliveryProfile
@@ -28,7 +29,6 @@ const props = defineProps<{
 const emit = defineEmits<{
   confirm: [profile: DeliveryProfile]
   delete: [id: string]
-  'open-pickup': []
 }>()
 
 const { t, country } = useStand()
@@ -36,8 +36,6 @@ const { courierVariants } = useCourierVariants()
 const { recipientValues } = useStandProfile()
 
 const text = computed(() => ({
-  courier: t('concept.delivery.courier.title'),
-  pickup: t('concept.delivery.pickup.action'),
   addressSection: t('address.title'),
   recipientSection: t('group.recipient.title'),
   save: t('common.save'),
@@ -159,19 +157,6 @@ function deleteProfile() {
 
 <template>
   <div class="cc3-inline-delivery-form">
-    <div class="cc3-inline-delivery-form__tabs">
-      <button type="button" class="cc3-inline-delivery-form__tab cc3-inline-delivery-form__tab--active">
-        {{ text.courier }}
-      </button>
-      <button
-        type="button"
-        class="cc3-inline-delivery-form__tab"
-        @click="$emit('open-pickup')"
-      >
-        {{ text.pickup }}
-      </button>
-    </div>
-
     <h3 class="cc3-inline-delivery-form__section-title">{{ text.addressSection }}</h3>
 
     <div class="cc3-inline-delivery-form__fields">
@@ -233,38 +218,6 @@ function deleteProfile() {
   flex-direction: column;
 
   padding: 0 var(--st-global-distance-space-inset-2xl);
-
-  &__tabs {
-    display: flex;
-    gap: var(--st-global-distance-space-inset-none);
-
-    margin: var(--st-global-distance-space-inset-lg) 0 var(--st-global-distance-space-inset-xl);
-    padding: var(--st-global-distance-space-inset-xs);
-
-    background-color: var(--st-content-background-color-neutral-onsubtle);
-    border-radius: var(--st-global-radius-xl);
-  }
-
-  &__tab {
-    flex: 1;
-
-    padding: var(--st-global-distance-space-inset-md) var(--st-global-distance-space-inset-2xl);
-
-    @include font('body-sm');
-
-    color: var(--st-content-foreground-color-neutral-primary);
-    background: none;
-    border: none;
-    border-radius: var(--st-global-radius-md);
-    cursor: pointer;
-
-    &--active {
-      background-color: var(--st-content-background-color-default-solid-normal);
-      box-shadow:
-        0 1px 4px 0 rgb(4 8 13 / 8%),
-        0 1px 2px 0 rgb(4 8 13 / 8%);
-    }
-  }
 
   &__section-title {
     margin: 0;

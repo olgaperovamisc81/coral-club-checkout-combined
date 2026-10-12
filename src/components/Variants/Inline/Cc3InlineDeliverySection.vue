@@ -11,7 +11,8 @@ import {
 } from '@/stand/config/addressLine'
 import { useStand } from '@/stand/composables/useStand'
 
-import type { DeliveryProfile } from '../Modal/deliveryProfile'
+import Cc3ModalDeliveryMethodSwitch from '../Modal/Cc3ModalDeliveryMethodSwitch.vue'
+import type { DeliveryProfile, DeliveryProfileMethod } from '../Modal/deliveryProfile'
 import Cc3InlineAddressBook from './Cc3InlineAddressBook.vue'
 import Cc3InlineDeliveryForm from './Cc3InlineDeliveryForm.vue'
 import Cc3InlinePickupDialog from './Cc3InlinePickupDialog.vue'
@@ -59,6 +60,9 @@ function toProfiles(): DeliveryProfile[] {
 
 const text = computed(() => ({
   change: t('common.change'),
+  addressTitle: t('address.title'),
+  courierTab: t('concept.delivery.courier.title'),
+  pickupTab: t('concept.delivery.pickup.action'),
   hours: t('pickup.hours'),
   hoursWeekday: t('pickup.hours.weekday'),
   hoursWeekend: t('pickup.hours.weekend'),
@@ -89,12 +93,78 @@ watch([country, user], () => {
   selectedEntryId.value = defaultSelectedId()
   editingEntryId.value = undefined
   isPickupDialogOpen.value = false
+  lastSelectedIds.value = {}
   mode.value = selectedEntryId.value ? 'summary' : 'form'
 })
 
 const selectedEntry = computed(() =>
   addressBookEntries.value.find((entry) => entry.id === selectedEntryId.value),
 )
+
+/**
+ * Свитчер стоит над блоком в любом состоянии — карточка, книга, форма.
+ * Активен способ выбранного адреса, а над формой — курьер: в инлайне форма
+ * есть только у курьера. Нажатие на другой способ ведёт на последний
+ * выбранный адрес этого способа, а если его нет — на путь заполнения:
+ * карта для самовывоза, форма для курьера.
+ */
+const activeMethod = computed<DeliveryProfileMethod>(() =>
+  mode.value === 'form' ? 'courier' : (selectedEntry.value?.method ?? 'courier'),
+)
+const lastSelectedIds = ref<Partial<Record<DeliveryProfileMethod, string>>>({})
+
+watch(
+  selectedEntry,
+  (entry) => {
+    if (entry) {
+      lastSelectedIds.value = { ...lastSelectedIds.value, [entry.method]: entry.id }
+    }
+  },
+  { immediate: true },
+)
+
+/**
+ * Для курьера заголовок карточки — «Адрес»: слово «Курьер» уже стоит на
+ * свитчере выше, второй раз оно читается как название карточки, а не как
+ * способ. У пункта выдачи заголовок — сам пункт.
+ */
+const rowTitle = computed(() =>
+  selectedEntry.value?.method === 'courier'
+    ? text.value.addressTitle
+    : (selectedEntry.value?.typeLabel ?? ''),
+)
+
+function lastEntryFor(method: DeliveryProfileMethod) {
+  return (
+    addressBookEntries.value.find((entry) => entry.id === lastSelectedIds.value[method]) ??
+    addressBookEntries.value.find((entry) => entry.method === method)
+  )
+}
+
+function onSwitchMethod(method: DeliveryProfileMethod) {
+  if (method === activeMethod.value) {
+    return
+  }
+
+  editingEntryId.value = undefined
+
+  const entry = lastEntryFor(method)
+
+  if (entry) {
+    selectedEntryId.value = entry.id
+    mode.value = 'summary'
+
+    return
+  }
+
+  if (method === 'pickup') {
+    isPickupDialogOpen.value = true
+
+    return
+  }
+
+  mode.value = 'form'
+}
 
 /**
  * Цена показывается только у пункта выдачи. У курьера её показывает блок
@@ -201,10 +271,6 @@ function onSelectEntry(id: string) {
   mode.value = 'summary'
 }
 
-function onOpenPickup() {
-  isPickupDialogOpen.value = true
-}
-
 function upsertProfile(profile: DeliveryProfile) {
   const index = addressBookEntries.value.findIndex((entry) => entry.id === profile.id)
 
@@ -246,9 +312,16 @@ function deleteEntry(id: string) {
 
 <template>
   <section ref="sectionRef" class="cc3-inline-delivery">
+    <Cc3ModalDeliveryMethodSwitch
+      :active="activeMethod"
+      :courier-label="text.courierTab"
+      :pickup-label="text.pickupTab"
+      @select="onSwitchMethod"
+    />
+
     <template v-if="mode === 'summary' && selectedEntry">
       <div class="cc3-inline-delivery__row">
-        <span class="cc3-inline-delivery__method">{{ selectedEntry.typeLabel }}</span>
+        <span class="cc3-inline-delivery__method">{{ rowTitle }}</span>
         <button type="button" class="cc3-inline-delivery__change" @click="openBook">
           <Cc3Icon name="edit-01" :size="16" />
           {{ text.change }}
@@ -294,7 +367,6 @@ function deleteEntry(id: string) {
       :edit-profile="editingEntry && editingEntry.method === 'courier' ? editingEntry : undefined"
       @confirm="upsertProfile"
       @delete="deleteEntry"
-      @open-pickup="onOpenPickup"
     />
 
     <Cc3InlinePickupDialog

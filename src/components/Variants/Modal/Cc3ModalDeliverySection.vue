@@ -13,7 +13,8 @@ import { useStand } from '@/stand/composables/useStand'
 
 import Cc3ModalAddressBook from './Cc3ModalAddressBook.vue'
 import Cc3ModalDeliveryDialog from './Cc3ModalDeliveryDialog.vue'
-import type { DeliveryProfile } from './deliveryProfile'
+import Cc3ModalDeliveryMethodSwitch from './Cc3ModalDeliveryMethodSwitch.vue'
+import type { DeliveryProfile, DeliveryProfileMethod } from './deliveryProfile'
 
 // Адресная книга приходит из ядра стенда: состав задаёт страна, наличие —
 // тип пользователя. Оформление карточек по макету Figma (узел 2171:41208)
@@ -63,6 +64,9 @@ const text = computed(() => ({
   addAddress: t('delivery.addAddress'),
   methodRequired: t('delivery.methodRequired'),
   change: t('common.change'),
+  addressTitle: t('address.title'),
+  courierTab: t('concept.delivery.method.courier'),
+  pickupTab: t('concept.delivery.pickup.action'),
   hours: t('pickup.hours'),
   hoursWeekday: t('pickup.hours.weekday'),
   hoursWeekend: t('pickup.hours.weekend'),
@@ -83,6 +87,7 @@ watch([country, user], () => {
   addressBookEntries.value = toProfiles()
   selectedEntryId.value = defaultSelectedId()
   editingEntryId.value = undefined
+  lastSelectedIds.value = {}
 })
 
 /**
@@ -109,6 +114,62 @@ const isFilled = computed(() => selectedEntryId.value !== undefined)
 const selectedEntry = computed(() =>
   addressBookEntries.value.find((entry) => entry.id === selectedEntryId.value),
 )
+
+/**
+ * Свитчер над карточкой показывает способ выбранного адреса. Нажатие на
+ * другой способ ведёт на последний выбранный адрес этого способа, а если
+ * его нет — сразу в диалог на путь заполнения: карта для самовывоза, поиск
+ * адреса для курьера.
+ */
+const activeMethod = computed<DeliveryProfileMethod>(() => selectedEntry.value?.method ?? 'courier')
+const lastSelectedIds = ref<Partial<Record<DeliveryProfileMethod, string>>>({})
+const dialogInitialMethod = ref<DeliveryProfileMethod>()
+
+watch(
+  selectedEntry,
+  (entry) => {
+    if (entry) {
+      lastSelectedIds.value = { ...lastSelectedIds.value, [entry.method]: entry.id }
+    }
+  },
+  { immediate: true },
+)
+
+/**
+ * Для курьера заголовок карточки — «Адрес»: слово «Курьер» уже стоит на
+ * свитчере выше, второй раз оно читается как название карточки, а не как
+ * способ. У пункта выдачи заголовок — сам пункт.
+ */
+const rowTitle = computed(() =>
+  selectedEntry.value?.method === 'courier'
+    ? text.value.addressTitle
+    : (selectedEntry.value?.typeLabel ?? ''),
+)
+
+function lastEntryFor(method: DeliveryProfileMethod) {
+  return (
+    addressBookEntries.value.find((entry) => entry.id === lastSelectedIds.value[method]) ??
+    addressBookEntries.value.find((entry) => entry.method === method)
+  )
+}
+
+function onSwitchMethod(method: DeliveryProfileMethod) {
+  if (method === activeMethod.value) {
+    return
+  }
+
+  const entry = lastEntryFor(method)
+
+  if (entry) {
+    selectedEntryId.value = entry.id
+
+    return
+  }
+
+  editingEntryId.value = undefined
+  dialogInitialMethod.value = method
+  isDialogOpen.value = true
+}
 
 /**
  * У курьера цена ушла из карточки адреса — её называет блок вариантов
@@ -171,6 +232,7 @@ function openAddressBook() {
 
 function openDialog() {
   editingEntryId.value = undefined
+  dialogInitialMethod.value = undefined
   isDialogOpen.value = true
 }
 
@@ -187,12 +249,14 @@ function onEditEntry(id: string) {
 
 function onAddNew() {
   editingEntryId.value = undefined
+  dialogInitialMethod.value = undefined
   isAddressBookOpen.value = false
   isDialogOpen.value = true
 }
 
 function closeDialog() {
   editingEntryId.value = undefined
+  dialogInitialMethod.value = undefined
   isDialogOpen.value = false
 }
 
@@ -247,8 +311,15 @@ function onDialogDelete(id: string) {
     </div>
 
     <div v-else-if="selectedEntry" class="cc3-modal-delivery__filled">
+      <Cc3ModalDeliveryMethodSwitch
+        :active="activeMethod"
+        :courier-label="text.courierTab"
+        :pickup-label="text.pickupTab"
+        @select="onSwitchMethod"
+      />
+
       <div class="cc3-modal-delivery__row">
-        <span class="cc3-modal-delivery__method">{{ selectedEntry.typeLabel }}</span>
+        <span class="cc3-modal-delivery__method">{{ rowTitle }}</span>
         <button type="button" class="cc3-modal-delivery__change" @click="openAddressBook">
           <Cc3Icon name="edit-01" :size="16" />
           {{ text.change }}
@@ -292,6 +363,7 @@ function onDialogDelete(id: string) {
     <Cc3ModalDeliveryDialog
       v-if="isDialogOpen"
       :edit-profile="editingEntry"
+      :initial-method="dialogInitialMethod"
       :variant-id="courierVariant"
       @close="closeDialog"
       @confirm="onDialogConfirm"

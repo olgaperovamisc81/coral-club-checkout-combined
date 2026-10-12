@@ -33,6 +33,14 @@ const props = defineProps<{
   editProfile?: DeliveryProfile
 
   /**
+   * Способ, на котором открывается новый адрес: свитчер над карточкой
+   * ведёт сразу на путь заполнения нужного способа — карту для самовывоза
+   * или поиск адреса для курьера. Для редактирования не нужен: там способ
+   * берётся из самого профиля.
+   */
+  initialMethod?: Method
+
+  /**
    * Вариант курьерской доставки, выбранный в чекауте. Сам диалог его не
    * меняет — скорость выбирается только в теле чекаута, как в инлайн-
    * концепте. Нужен, чтобы подписать созданную карточку той же строкой,
@@ -89,7 +97,7 @@ function initialStep(): Step {
   return props.editProfile.method === 'courier' ? 'address-form' : 'pickup-detail'
 }
 
-const method = ref<Method>(props.editProfile?.method ?? 'courier')
+const method = ref<Method>(props.editProfile?.method ?? props.initialMethod ?? 'courier')
 const step = ref<Step>(initialStep())
 
 const courierVariantId = computed(() => props.variantId ?? defaultVariantId.value)
