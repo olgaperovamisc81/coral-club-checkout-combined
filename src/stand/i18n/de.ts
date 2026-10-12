@@ -82,11 +82,11 @@ export default {
   'common.zoomOut': 'Verkleinern',
   'common.findAddress': 'Adresse suchen',
   'delivery.variants.hint': 'Adresse eingeben — dann zeigen wir die Versandarten',
-  'delivery.slot.day1': 'Morgen',
-  'delivery.slot.day2': '28. Aug, Fr',
-  'delivery.slot.day3': '29. Aug, Sa',
-  'delivery.slot.time1': '12:00 — 23:00',
-  'delivery.slot.time2': '13:00 — 00:00',
+  // Подписи дат собираются из даты прогона: раньше тут стояли
+  // «28 авг, пт» строками, и к октябрю стенд предлагал доставку
+  // в прошлом. Сами даты и окна времени — в config/deliverySlots.ts.
+  'delivery.slot.today': 'Heute',
+  'delivery.slot.tomorrow': 'Morgen',
   'common.map': 'Karte',
   'common.list': 'Liste',
   'checkout.title': 'Kasse',
@@ -222,21 +222,21 @@ export default {
   // подписи и примеры ввода — местные для каждого рынка
   'field.autofilled.hint': 'Wird aus dem Vorschlag übernommen, kann geändert werden',
   'suggest.loading': 'Suche läuft…',
-  'suggest.empty': 'Nichts gefunden — Adresse manuell eingeben',
-  'suggest.error': 'Vorschlagsdienst nicht verfügbar, Beispiele werden gezeigt',
+  // Одна подпись на оба исхода: сервис ничего не нашёл и сервис не
+  // ответил. Для человека разницы нет — ему важно, что дальше можно
+  // просто ввести адрес руками.
+  'suggest.empty': 'Keine Ergebnisse. Sie können die Adresse manuell eingeben',
 
   'field.addressLabel.label': 'Adressname',
   'field.addressLabel.home': 'Zuhause',
   'field.addressLabel.work': 'Arbeit',
   'field.addressLabel.custom': 'Eigener Name',
   'field.street.label': 'Adresse suchen',
-  'field.street.placeholder': 'Straße und Hausnummer',
-  'field.street.placeholder@ru': 'Москва, ул. Москворечье, 43',
-  'field.street.placeholder@kz': 'Алматы, ул. Абая, 150',
-  'field.street.placeholder@de': 'Kastanienallee 42',
-  'field.street.placeholder@pl': 'ul. Marszałkowska 84/92',
-  'field.street.placeholder@cz': 'Vinohradská 112',
-  'field.street.placeholder@us': '350 5th Ave',
+  // Инструкция, а не пример адреса: готовый адрес в плейсхолдере
+  // читается как уже заполненное поле. Переопределений по странам
+  // здесь больше нет — они и были теми самыми примерами.
+  'field.street.placeholder': 'Straße und Hausnummer eingeben',
+  'field.street.placeholder@us': 'Enter street address',
   'field.street.label@us': 'Start typing address',
   'field.house.label': 'Hausnummer',
   'field.house.placeholder': '43',
