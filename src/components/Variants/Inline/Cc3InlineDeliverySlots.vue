@@ -1,6 +1,11 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import { computed, ref, watch } from 'vue'
 
+import {
+  deliveryDatesFor,
+  deliveryTimesFor,
+  hasDeliverySlots,
+} from '@/stand/config/deliverySlots'
 import { useStand } from '@/stand/composables/useStand'
 
 /**
@@ -12,29 +17,71 @@ import { useStand } from '@/stand/composables/useStand'
  * повторять это условие.
  *
  * Стоит под вариантами доставки, а не в карточке адреса. Слот принадлежит
- * способу доставки, а не адресу: у экспресса в день заказа и у обычного
- * курьера это разные интервалы. Пока способ не выбран, выбирать дату не от
- * чего — и именно это раньше сбивало, слоты стояли выше вариантов.
+ * способу доставки, а не адресу: у экспресса и у обычного курьера это
+ * разные интервалы. Пока способ не выбран, выбирать дату не от чего — и
+ * именно это раньше сбивало, слоты стояли выше вариантов.
+ *
+ * Сам набор приходит из ядра стенда: даты считаются от дня прогона, а не
+ * стоят строками в словаре. Здесь только отрисовка и выбор.
  */
-type Chip = { label: string; value: string }
+const props = defineProps<{
+  /** Выбранный способ доставки: у экспресса свои даты и окна. */
+  variantId?: string
+}>()
 
-const dateSlots = ['day1', 'day2', 'day3']
-const timeSlots = ['time1', 'time2']
+const { country, countryConfig, t } = useStand()
 
-const { country, t } = useStand()
+const hasSlots = computed(() => hasDeliverySlots(country.value))
 
-const hasSlots = computed(() => country.value === 'ru')
+const selectedDate = ref('')
+const selectedTime = ref('')
 
-const dateChips = computed<Chip[]>(() =>
-  dateSlots.map((value) => ({ value, label: t(`delivery.slot.${value}`) })),
+const dateChips = computed(() =>
+  deliveryDatesFor(props.variantId, countryConfig.value.intlLocale, t),
 )
 
-const timeChips = computed<Chip[]>(() =>
-  timeSlots.map((value) => ({ value, label: t(`delivery.slot.${value}`) })),
+// Окна зависят от выбранной даты, а не только от способа: у экспресса на
+// сегодня отпадают ближайшие часы, на завтра набор полный.
+const timeChips = computed(() => deliveryTimesFor(props.variantId, selectedDate.value))
+
+/**
+ * Сменили способ — выбор возвращается к ближайшей дате.
+ *
+ * Не «оставить, если ещё подходит»: у курьера и экспресса ряды теперь
+ * пересекаются по «Завтра», и переключившийся на экспресс человек
+ * оставался бы с завтрашней датой, хотя весь смысл экспресса — сегодня.
+ */
+watch(
+  () => props.variantId,
+  () => {
+    selectedDate.value = dateChips.value[0]?.value ?? ''
+  },
+  { immediate: true },
 )
 
-const selectedDate = ref(dateSlots[0])
-const selectedTime = ref(timeSlots[0])
+/**
+ * А вот даты меняются и сами — к вечеру, с переходом суток. Здесь выбор
+ * трогаем, только если выбранного больше нет в ряду.
+ */
+watch(dateChips, (chips) => {
+  if (!chips.some((chip) => chip.value === selectedDate.value)) {
+    selectedDate.value = chips[0]?.value ?? ''
+  }
+})
+
+/**
+ * Окно — первое доступное: ближайшее к выбранной дате. Пересобирается при
+ * смене даты, потому что у экспресса на сегодня набор короче.
+ */
+watch(
+  timeChips,
+  (chips) => {
+    if (!chips.some((chip) => chip.value === selectedTime.value)) {
+      selectedTime.value = chips[0]?.value ?? ''
+    }
+  },
+  { immediate: true },
+)
 </script>
 
 <template>
