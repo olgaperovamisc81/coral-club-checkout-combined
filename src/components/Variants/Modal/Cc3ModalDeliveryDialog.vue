@@ -345,7 +345,9 @@ const searchField = computed(() => {
 
 const courierCenter = computed<MapPoint>(() => addressPoint.value ?? mapCenter.value)
 
-const courierMarkers = computed(() => [{ id: 'address', ...courierCenter.value }])
+// Метка рисуется накладкой по центру экрана, а не маркером карты: карту
+// двигают под ней. Пустой список — чтобы карта не рисовала вторую.
+const courierMarkers = computed<(MapPoint & { id: string })[]>(() => [])
 
 /**
  * Высота карты — всё, что осталось от экрана.
@@ -431,7 +433,21 @@ function onSuggestionSelect(suggestion: AddressSuggestion) {
 const isSearchOpen = ref(false)
 const searchInputRef = ref<HTMLElement>()
 
+/**
+ * Строка в окне поиска живёт отдельно от адреса.
+ *
+ * Открываем поиск — поле пустое, даже если адрес уже выбран. Иначе первым
+ * делом приходится стирать чужой текст: подсказки по нему всё равно не
+ * ищутся, он уже выбран.
+ *
+ * Отсюда и разные роли кнопок: крестик и Escape — «вернуться, ничего не
+ * меняя», ввод — «взять то, что набрано». Раньше поле писало прямо в
+ * адрес, и отменить было нечем.
+ */
+const searchQuery = ref('')
+
 function openSearch() {
+  searchQuery.value = ''
   isSearchOpen.value = true
 
   void nextTick(() => {
@@ -441,6 +457,17 @@ function openSearch() {
 
 function closeSearch() {
   isSearchOpen.value = false
+}
+
+/** Ввод в окне поиска — взять набранное как адрес и вернуться к карте. */
+function applySearchQuery() {
+  const query = searchQuery.value.trim()
+
+  if (query) {
+    values.value = { ...values.value, street: query }
+  }
+
+  closeSearch()
 }
 
 function onSearchPick(suggestion: AddressSuggestion) {
@@ -576,7 +603,7 @@ function onOverlayKeydown(event: KeyboardEvent) {
   // отмена. Если ввод уже забрала подсказка (она гасит событие), окно
   // закроется само.
   if (event.key === 'Enter' && isSearchOpen.value && !event.defaultPrevented) {
-    closeSearch()
+    applySearchQuery()
 
     return
   }
@@ -645,11 +672,19 @@ function onOverlayKeydown(event: KeyboardEvent) {
                 :markers="courierMarkers"
                 :height="mapHeight"
                 @select="onMapSelect"
-              >
-                <template #marker>
-                  <Cc3MapPin variant="address" icon="delivery-truck" />
-                </template>
-              </Cc3Map>
+                @move="onMapSelect"
+              />
+
+              <!--
+                Метка стоит неподвижно в середине экрана, под ней двигают
+                саму карту — так выбирают адрес в Озоне и Яндексе. Поэтому
+                она не маркер карты, а накладка поверх: маркер уезжал бы
+                вместе с тайлами. Сквозная для событий, иначе под ней
+                нельзя было бы вести карту.
+              -->
+              <span class="cc3-modal-delivery-dialog__map-pin">
+                <Cc3MapPin variant="positive" icon="delivery-truck" />
+              </span>
 
               <button
                 type="button"
@@ -887,7 +922,7 @@ function onOverlayKeydown(event: KeyboardEvent) {
           <div ref="searchInputRef" class="cc3-modal-delivery-dialog__search-field">
             <Cc3StandField
               v-if="searchField"
-              v-model="addressSearch"
+              v-model="searchQuery"
               :field="searchField"
               @select="onSearchPick"
             />
@@ -1087,6 +1122,19 @@ function onOverlayKeydown(event: KeyboardEvent) {
   // Лупа на карте — второй вход в поиск, кроме строки адреса под картой.
   // Стоит над кнопками масштаба: те прижаты к нижнему правому углу, и
   // 68px — их высота (две кнопки по 28 и зазор) плюс собственный отступ.
+  // Метка поверх карты, строго по центру: её кончик приходится на ту
+  // точку, адрес которой мы показываем внизу. Сквозная для событий —
+  // иначе под ней нельзя было бы вести карту.
+  &__map-pin {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    z-index: 1;
+
+    pointer-events: none;
+    transform: translate(-50%, -100%);
+  }
+
   &__map-search {
     position: absolute;
     right: var(--st-global-distance-space-stack-md);
