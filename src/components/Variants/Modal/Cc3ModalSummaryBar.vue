@@ -111,13 +111,13 @@ onBeforeUnmount(resetSticky)
     // Серая подложка чуть светлее самой полосы: панель отличается от белой
     // страницы, но не спорит с полосой над ней. Готового токена между surface
     // (4%, почти не видно) и disable (8%, как у полосы) нет, поэтому берём
-    // три четверти от disable — около 6%. Подложка непрозрачная: панель
+    // чуть больше половины от disable — около 4,5%. Подложка непрозрачная: панель
     // уезжает под полосу и содержимое, а токен полупрозрачный — белая основа
     // под ним ничего не пропускает. Тени нет — панель отделяет линия снизу.
     background-color: var(--st-content-background-color-default-solid-normal);
     background-image: linear-gradient(
-      color-mix(in srgb, var(--st-content-background-color-neutral-disable) 75%, transparent),
-      color-mix(in srgb, var(--st-content-background-color-neutral-disable) 75%, transparent)
+      color-mix(in srgb, var(--st-content-background-color-neutral-disable) 55%, transparent),
+      color-mix(in srgb, var(--st-content-background-color-neutral-disable) 55%, transparent)
     );
     border-bottom: 1px solid var(--st-content-border-color-neutral-implicit);
   }
