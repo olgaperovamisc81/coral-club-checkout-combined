@@ -10,8 +10,8 @@ import Cc3CombinedAddressForm from './Cc3CombinedAddressForm.vue'
 
 /**
  * Правка сохранённого адреса курьера — окном на весь экран. Внутри та же
- * форма, что на странице, только открытая сразу с данными адреса; в конце
- * формы «Сохранить изменения» и «Удалить». Пока обязательные поля не заполнены,
+ * форма, что на странице, только открытая сразу с данными адреса; внизу
+ * окна, всегда на виду, «Сохранить изменения» и «Удалить». Пока обязательные поля не заполнены,
  * сохранить нельзя: адрес без них страница всё равно не примет.
  */
 const props = defineProps<{
@@ -99,7 +99,7 @@ function onKeydown(event: KeyboardEvent) {
       <div class="cc3-combined-address-edit-dialog__body">
         <Cc3CombinedAddressForm :edit-profile="editProfile" @change="onChange" />
 
-        <!-- Кнопки в конце формы, как в модальной версии, а не прибиты к низу. -->
+        <!-- Кнопки прилипают к низу окна: форма длинная и уходит под них. -->
         <div class="cc3-combined-address-edit-dialog__actions">
           <button
             type="button"
@@ -193,7 +193,7 @@ function onKeydown(event: KeyboardEvent) {
     transform: translateY(-50%);
   }
 
-  // Форма длиннее экрана: прокручивается всё тело вместе с кнопками в конце.
+  // Форма длиннее экрана: прокручивается тело, а кнопки липнут к его низу.
   &__body {
     flex: 1;
 
@@ -203,13 +203,22 @@ function onKeydown(event: KeyboardEvent) {
     overscroll-behavior: contain;
   }
 
+  // Кнопки прилипают к низу окна и видны всегда, а форма прокручивается под
+  // ними; в конце формы они встают на своё место. Фон нужен, чтобы поля не
+  // просвечивали сквозь кнопки.
   &__actions {
+    position: sticky;
+    inset-block-end: 0;
+    z-index: 1;
+
     display: flex;
     flex-direction: column;
     gap: var(--st-global-distance-space-inset-md);
 
     padding: var(--st-global-distance-space-inset-xl) var(--st-global-distance-space-inset-2xl)
       var(--st-global-distance-space-inset-2xl);
+
+    background-color: var(--st-content-background-color-default-solid-normal);
   }
 
   &__save,
