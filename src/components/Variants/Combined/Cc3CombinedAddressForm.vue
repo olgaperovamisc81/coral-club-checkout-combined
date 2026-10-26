@@ -215,13 +215,21 @@ watch(
 
   padding: 0 var(--st-global-distance-space-inset-2xl);
 
+  // Отступы заголовка по схеме дизайнера: от блока над ним до текста заголовка
+  // 44px, от текста до блока под ним 28px. Строка заголовка 6 + 28 + 14, над
+  // ней 12 — первому заголовку после свитчера нужно ещё на 2px больше.
   &__title {
-    margin: 0;
-    padding: var(--st-global-distance-space-inset-sm) 0 var(--st-global-distance-space-inset-xl);
+    margin: var(--st-global-distance-space-inset-xl) 0 0;
+    padding: var(--st-global-distance-space-inset-sm) 0
+      calc(var(--st-global-distance-space-inset-xl) + var(--st-global-distance-space-inset-x));
 
     @include font('heading-xxs');
 
     color: var(--st-content-foreground-color-neutral-primary);
+
+    &:first-child {
+      margin-top: calc(var(--st-global-distance-space-inset-xl) + var(--st-global-distance-space-inset-x));
+    }
   }
 
   &__fields {

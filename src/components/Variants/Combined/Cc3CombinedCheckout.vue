@@ -147,9 +147,20 @@ watch(
   &__body {
     display: flex;
     flex-direction: column;
-    gap: var(--st-global-distance-space-inset-2xl);
+    gap: var(--st-global-distance-space-inset-xl);
 
     padding-top: var(--st-global-distance-space-inset-2xl);
+
+    // Сводка и подвал общие с модальной версией и своих отступов не знают.
+    // Сводке нужны те же 12 сверху, что и остальным блокам с заголовком, а
+    // подвалу — 4, чтобы зазор между ними остался прежним, 16.
+    > .cc3-modal-order-summary {
+      padding-top: var(--st-global-distance-space-inset-xl);
+    }
+
+    > .cc3-modal-footer {
+      margin-top: var(--st-global-distance-space-inset-xs);
+    }
   }
 
   // Отступы по краям как у остальных блоков страницы: сами списки
@@ -166,7 +177,9 @@ watch(
   }
 
   &__options-title {
-    margin: 0 0 var(--st-global-distance-space-inset-xl);
+    margin: 0;
+    padding: var(--st-global-distance-space-inset-sm) 0
+      calc(var(--st-global-distance-space-inset-xl) + var(--st-global-distance-space-inset-x));
 
     @include font('heading-xxs');
 

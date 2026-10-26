@@ -338,7 +338,11 @@ function onPickupDelete(id: string) {
 </script>
 
 <template>
-  <section ref="sectionRef" class="cc3-combined-delivery">
+  <section
+    ref="sectionRef"
+    class="cc3-combined-delivery"
+    :class="{ 'cc3-combined-delivery--summary': mode === 'summary' && selectedEntry }"
+  >
     <Cc3ModalDeliveryMethodSwitch
       :active="activeMethod"
       :courier-label="text.courierTab"
@@ -401,11 +405,20 @@ function onPickupDelete(id: string) {
 
 <style lang="scss">
 .cc3-combined-delivery {
+  // Карточка адреса заканчивается без запаса, а форма — отступом последнего
+  // поля. Те же 12 снизу, чтобы до заголовка следующего блока выходило как
+  // после формы.
+  &--summary {
+    padding-bottom: var(--st-global-distance-space-inset-xl);
+  }
+
+  // Отступ над заголовком, как у заголовка формы: 46px от свитчера до текста.
   &__row {
     display: flex;
     align-items: center;
     justify-content: space-between;
 
+    margin-top: calc(var(--st-global-distance-space-inset-xl) + var(--st-global-distance-space-inset-x));
     padding: var(--st-global-distance-space-inset-sm) var(--st-global-distance-space-inset-2xl);
   }
 

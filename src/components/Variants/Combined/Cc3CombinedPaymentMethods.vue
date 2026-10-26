@@ -88,12 +88,14 @@ watch(methods, (list) => {
 
 <style lang="scss">
 .cc3-combined-payment {
-  padding: 0 var(--st-global-distance-space-inset-2xl);
+  // Сверху 12 к зазору между блоками страницы (тоже 12): от блока над ним до
+  // строки заголовка выходит 24, как у остальных заголовков.
+  padding: var(--st-global-distance-space-inset-xl) var(--st-global-distance-space-inset-2xl) 0;
 
   &__title {
     margin: 0;
     padding: var(--st-global-distance-space-inset-sm) 0
-      var(--st-global-distance-space-inset-xl);
+      calc(var(--st-global-distance-space-inset-xl) + var(--st-global-distance-space-inset-x));
 
     @include font('heading-xxs');
 
