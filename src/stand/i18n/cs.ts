@@ -44,6 +44,7 @@ export default {
   'variant.combined.hint': 'Koncept C — formulář na stránce, mapa a adresář v oknech',
   'combined.addressRequired': 'Nejprve přidejte doručovací adresu',
   'combined.editAddress': 'Upravit adresu',
+  'combined.addPickup': 'Přidat výdejní místo',
 
   // Doručení a výdejní místa
   'delivery.method.courier': 'Kurýr',

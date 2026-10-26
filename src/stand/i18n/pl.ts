@@ -44,6 +44,7 @@ export default {
   'variant.combined.hint': 'Koncepcja C — formularz na stronie, mapa i książka adresowa w oknach',
   'combined.addressRequired': 'Najpierw dodaj adres dostawy',
   'combined.editAddress': 'Edytuj adres',
+  'combined.addPickup': 'Dodaj punkt odbioru',
 
   // Dostawa i punkty odbioru
   'delivery.method.courier': 'Kurier',

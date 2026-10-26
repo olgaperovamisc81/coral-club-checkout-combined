@@ -44,6 +44,7 @@ export default {
   'variant.combined.hint': 'Concept C — inline form, map and address book in popups',
   'combined.addressRequired': 'Please add a delivery address first',
   'combined.editAddress': 'Edit address',
+  'combined.addPickup': 'Add pickup point',
 
   // Delivery and pickup points
   'delivery.method.courier': 'Courier',

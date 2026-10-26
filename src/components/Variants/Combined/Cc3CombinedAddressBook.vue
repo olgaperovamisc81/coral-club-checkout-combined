@@ -16,9 +16,11 @@ import type { DeliveryProfile, DeliveryProfileMethod } from '../Modal/deliveryPr
  * в строке, и клик по названию или адресу открывал бы редактирование вместо
  * выбора.
  */
-defineProps<{
+const props = defineProps<{
   entries: DeliveryProfile[]
   selectedId?: string
+  /** Активный способ: от него зависит, что добавляет нижняя кнопка. */
+  method: DeliveryProfileMethod
 }>()
 
 const emit = defineEmits<{
@@ -35,8 +37,13 @@ const text = computed(() => ({
   close: t('common.close'),
   search: t('common.searchByNameAddress'),
   edit: t('combined.editAddress'),
-  add: t('delivery.addAddress'),
+  addCourier: t('delivery.addAddress'),
+  addPickup: t('combined.addPickup'),
 }))
+
+const addLabel = computed(() =>
+  props.method === 'pickup' ? text.value.addPickup : text.value.addCourier,
+)
 
 type FilterId = 'all' | DeliveryProfileMethod
 
@@ -156,7 +163,7 @@ function onKeydown(event: KeyboardEvent) {
       <div class="cc3-combined-address-book__footer">
         <button type="button" class="cc3-combined-address-book__add" @click="emit('add')">
           <Cc3Icon name="plus-md" :size="24" />
-          {{ text.add }}
+          {{ addLabel }}
         </button>
       </div>
     </div>

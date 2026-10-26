@@ -44,6 +44,7 @@ export default {
   'variant.combined.hint': 'Концепт C — инлайн-форма, адрес на карте и книга адресов в окнах',
   'combined.addressRequired': 'Необходимо добавить адрес доставки',
   'combined.editAddress': 'Изменить адрес',
+  'combined.addPickup': 'Добавить пункт самовывоза',
 
   // Доставка и пункты выдачи
   'delivery.method.courier': 'Курьер',

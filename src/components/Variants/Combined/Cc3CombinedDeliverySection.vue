@@ -385,6 +385,7 @@ function onPickupDelete(id: string) {
       v-if="isBookOpen"
       :entries="entries"
       :selected-id="selectedEntryId"
+      :method="activeMethod"
       @close="isBookOpen = false"
       @select="onSelectEntry"
       @edit="onEditEntry"

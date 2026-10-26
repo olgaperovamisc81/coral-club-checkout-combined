@@ -44,6 +44,7 @@ export default {
   'variant.combined.hint': 'Konzept C — Inline-Formular, Karte und Adressbuch in Fenstern',
   'combined.addressRequired': 'Bitte zuerst eine Lieferadresse hinzufügen',
   'combined.editAddress': 'Adresse bearbeiten',
+  'combined.addPickup': 'Abholpunkt hinzufügen',
 
   // Lieferung und Abholstellen
   'delivery.method.courier': 'Kurier',
