@@ -106,9 +106,6 @@ watch(methods, (list) => {
 
   &__row {
     @include cc3-combined-choice-row;
-
-    // По макету от значка до краёв строки 16px со всех сторон.
-    padding-block: var(--st-global-distance-space-inset-2xl);
   }
 
   &__method {

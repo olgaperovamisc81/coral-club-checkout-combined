@@ -21,7 +21,8 @@
   justify-content: space-between;
   gap: var(--st-global-distance-space-inset-xl);
 
-  padding: var(--st-global-distance-space-inset-xl) var(--st-global-distance-space-inset-2xl);
+  // По макету от содержимого строки до её краёв 16px со всех сторон.
+  padding: var(--st-global-distance-space-inset-2xl);
 
   cursor: pointer;
 
