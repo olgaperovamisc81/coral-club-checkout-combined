@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
+import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 
 import Cc3Icon from '@/components/Icon/Cc3Icon.vue'
 import type { MapPoint } from '@/components/Map/mapTypes'
@@ -7,10 +7,12 @@ import { useCheckout, type PickupProvider } from '@/composables/useCheckout'
 import { useStand } from '@/stand/composables/useStand'
 import { useStandProfile } from '@/stand/composables/useStandProfile'
 import { pickupCardLines } from '@/stand/config/pickupCard'
+import type { FieldKey } from '@/stand/config/types'
 import type { AddressSuggestion } from '@/stand/suggest'
 
 import Cc3ModalConfirmDialog from '../../Modal/Cc3ModalConfirmDialog.vue'
 import type { DeliveryProfile } from '../../Modal/deliveryProfile'
+import Cc3CombinedPickupDetail from './Cc3CombinedPickupDetail.vue'
 import Cc3CombinedPickupFilters from './Cc3CombinedPickupFilters.vue'
 import Cc3CombinedPickupList from './Cc3CombinedPickupList.vue'
 import Cc3CombinedPickupMap from './Cc3CombinedPickupMap.vue'
@@ -27,8 +29,9 @@ import Cc3CombinedPickupSwitch from './Cc3CombinedPickupSwitch.vue'
  * шторка с подсказками: выбранный адрес двигает карту и ставит ближайшие
  * пункты в списке первыми.
  *
- * Получателя здесь не спрашивают: им становится покупатель из профиля, как
- * у курьера. «Привезти сюда» сразу возвращает пункт на страницу.
+ * «Привезти сюда» ведёт не на страницу, а на шаг уточнения: данные пункта и
+ * получатель. Пункт возвращается на страницу только после него. Окно,
+ * открытое на правку сохранённого пункта, начинается сразу с этого шага.
  */
 const props = defineProps<{
   editProfile?: DeliveryProfile
@@ -54,12 +57,16 @@ const text = computed(() => ({
   title: t('pickup.title'),
   close: t('common.close'),
   all: t('common.all'),
-  confirm: t('combined.bringHere'),
+  bringHere: t('combined.bringHere'),
+  continue: t('common.continue'),
+  save: t('common.save'),
   remove: t('common.delete'),
 }))
 
+type Step = 'picker' | 'detail'
 type View = 'map' | 'list'
 
+const step = ref<Step>(props.editProfile ? 'detail' : 'picker')
 const view = ref<View>('map')
 const selectedId = ref<string>()
 const isSearchOpen = ref(false)
@@ -159,26 +166,42 @@ const mapView = computed(() => ({
 // ─── Получатель ──────────────────────────────────────────────────────────────
 
 /**
- * Новый пункт берёт получателем покупателя из профиля, сохранённый — тех,
- * кто в нём уже указан: пункт при правке меняется, а получатель остаётся.
+ * Новый пункт открывается с получателем из профиля, сохранённый — со своими
+ * данными. Имя разбирается на части, потому что состав полей зависит от
+ * страны: в СНГ это одно поле, в Европе и США — имя и фамилия отдельно.
  */
-const recipient = computed(() => {
+function seedRecipient(): Partial<Record<FieldKey, string>> {
   const saved = props.editProfile
 
-  if (saved) {
-    return { name: saved.name, phone: saved.phone, email: saved.email }
+  if (!saved) {
+    return { ...profileRecipient.value }
   }
 
-  const values = profileRecipient.value
+  const [firstName = '', ...rest] = saved.name.trim().split(/\s+/)
 
   return {
-    name:
-      values.recipientName?.trim() ||
-      [values.recipientFirstName, values.recipientLastName].filter(Boolean).join(' '),
-    phone: values.recipientPhone ?? '',
-    email: values.recipientEmail ?? '',
+    recipientName: saved.name,
+    recipientFirstName: firstName,
+    recipientLastName: rest.join(' '),
+    recipientPhone: saved.phone,
+    recipientEmail: saved.email,
   }
+}
+
+const recipientValues = ref<Partial<Record<FieldKey, string>>>(seedRecipient())
+
+// Смена страны — другой формат телефона и другое имя по умолчанию.
+watch(country, () => {
+  recipientValues.value = seedRecipient()
 })
+
+const recipientName = computed(
+  () =>
+    recipientValues.value.recipientName?.trim() ||
+    [recipientValues.value.recipientFirstName, recipientValues.value.recipientLastName]
+      .filter(Boolean)
+      .join(' '),
+)
 
 const sheet = computed(() => {
   const point = activePoint.value
@@ -194,7 +217,51 @@ const sheet = computed(() => {
   }
 })
 
-const isSheetVisible = computed(() => view.value === 'map' && Boolean(sheet.value))
+const isSheetVisible = computed(
+  () => step.value === 'picker' && view.value === 'map' && Boolean(sheet.value),
+)
+
+type PickupDetailView = {
+  title: string
+  address: string
+  priceLabel: string
+  storage?: string
+  directions?: string
+  phone?: string
+}
+
+/**
+ * Данные для шага уточнения. Правка из адресной книги не знает, какому пункту
+ * из списка соответствует сохранённая карточка (id пункта в профиле не
+ * хранится), поэтому до выбора нового пункта берёт данные прямо из неё — без
+ * часов работы и «как добраться».
+ */
+const detailView = computed<PickupDetailView | undefined>(() => {
+  const point = activePoint.value
+
+  if (point) {
+    const lines = pickupCardLines(point.provider, t)
+
+    return {
+      title: pickupProviderLabels.value[point.provider],
+      address: point.address,
+      priceLabel: metaOf(point),
+      storage: lines.storage,
+      directions: lines.directions,
+      phone: point.phone,
+    }
+  }
+
+  if (props.editProfile) {
+    return {
+      title: props.editProfile.typeLabel,
+      address: props.editProfile.addressLine,
+      priceLabel: props.editProfile.priceLabel,
+    }
+  }
+
+  return undefined
+})
 
 // ─── Действия ────────────────────────────────────────────────────────────────
 
@@ -211,22 +278,33 @@ function onPickSuggestion(suggestion: AddressSuggestion) {
   }
 }
 
-function confirm() {
-  const point = activePoint.value
+function bringHere() {
+  step.value = 'detail'
+}
 
-  if (!point) {
+// Единственный путь назад с шага уточнения — ссылка «На карте» у заголовка.
+// Возвращает карту, а не список, на котором случайно остановились.
+function backToPicker() {
+  step.value = 'picker'
+  view.value = 'map'
+}
+
+function confirm() {
+  const detail = detailView.value
+
+  if (!detail) {
     return
   }
 
   emit('confirm', {
     id: props.editProfile?.id ?? `profile-${Date.now()}`,
     method: 'pickup',
-    typeLabel: pickupProviderLabels.value[point.provider],
-    name: recipient.value.name,
-    addressLine: point.address,
-    priceLabel: metaOf(point),
-    phone: recipient.value.phone,
-    email: recipient.value.email,
+    typeLabel: detail.title,
+    name: recipientName.value,
+    addressLine: detail.address,
+    priceLabel: detail.priceLabel,
+    phone: recipientValues.value.recipientPhone ?? '',
+    email: recipientValues.value.recipientEmail ?? '',
   })
 }
 
@@ -291,75 +369,91 @@ function onKeydown(event: KeyboardEvent) {
         </button>
       </div>
 
-      <div class="cc3-combined-pickup-dialog__body">
-        <template v-if="view === 'map'">
-          <div class="cc3-combined-pickup-dialog__stage">
-            <Cc3CombinedPickupMap
-              :key="mapKey"
-              :markers="markers"
-              :selected-id="selectedId"
-              :center="mapView.center"
-              :zoom="mapView.zoom"
-              @pick="selectedId = $event"
-              @deselect="selectedId = undefined"
+      <div
+        class="cc3-combined-pickup-dialog__body"
+        :class="{ 'cc3-combined-pickup-dialog__body--scroll': step === 'detail' }"
+      >
+        <template v-if="step === 'picker'">
+          <template v-if="view === 'map'">
+            <div class="cc3-combined-pickup-dialog__stage">
+              <Cc3CombinedPickupMap
+                :key="mapKey"
+                :markers="markers"
+                :selected-id="selectedId"
+                :center="mapView.center"
+                :zoom="mapView.zoom"
+                @pick="selectedId = $event"
+                @deselect="selectedId = undefined"
+              />
+
+              <Cc3CombinedPickupSwitch
+                class="cc3-combined-pickup-dialog__switch cc3-combined-pickup-dialog__switch--floating"
+                :view="view"
+                searchable
+                @select="view = $event"
+                @search="isSearchOpen = true"
+              />
+            </div>
+
+            <Cc3CombinedPickupFilters :filters="providerFilters" @select="onFilter" />
+          </template>
+
+          <template v-else>
+            <Cc3CombinedPickupSwitch
+              class="cc3-combined-pickup-dialog__switch"
+              :view="view"
+              @select="view = $event"
             />
 
-            <Cc3CombinedPickupSwitch
-              class="cc3-combined-pickup-dialog__switch cc3-combined-pickup-dialog__switch--floating"
-              :view="view"
-              searchable
-              @select="view = $event"
+            <Cc3CombinedPickupList
+              :points="listItems"
+              :filters="providerFilters"
+              :selected-id="selectedId"
+              :address="address"
+              @select="selectedId = $event"
+              @filter="onFilter"
               @search="isSearchOpen = true"
             />
-          </div>
+          </template>
 
-          <Cc3CombinedPickupFilters :filters="providerFilters" @select="onFilter" />
-        </template>
-
-        <template v-else>
-          <Cc3CombinedPickupSwitch
-            class="cc3-combined-pickup-dialog__switch"
-            :view="view"
-            @select="view = $event"
+          <Cc3CombinedPickupSheet
+            v-if="isSheetVisible && sheet"
+            :title="sheet.title"
+            :address="sheet.address"
+            :recipient="recipientName"
+            :meta="sheet.meta"
+            @confirm="bringHere"
           />
 
-          <Cc3CombinedPickupList
-            :points="listItems"
-            :filters="providerFilters"
-            :selected-id="selectedId"
-            :address="address"
-            @select="selectedId = $event"
-            @filter="onFilter"
-            @search="isSearchOpen = true"
-          />
+          <template v-if="isSearchOpen">
+            <div class="cc3-combined-pickup-dialog__dim" @click="isSearchOpen = false" />
+
+            <Cc3CombinedPickupSearch :initial-query="address" @pick="onPickSuggestion" />
+          </template>
         </template>
 
-        <Cc3CombinedPickupSheet
-          v-if="isSheetVisible && sheet"
-          :title="sheet.title"
-          :address="sheet.address"
-          :recipient="recipient.name"
-          :meta="sheet.meta"
-          :deletable="Boolean(editProfile)"
-          @confirm="confirm"
-          @delete="isDeleteConfirmOpen = true"
+        <Cc3CombinedPickupDetail
+          v-else-if="detailView"
+          v-model="recipientValues"
+          :detail="detailView"
+          @back="backToPicker"
         />
-
-        <template v-if="isSearchOpen">
-          <div class="cc3-combined-pickup-dialog__dim" @click="isSearchOpen = false" />
-
-          <Cc3CombinedPickupSearch :initial-query="address" @pick="onPickSuggestion" />
-        </template>
       </div>
 
-      <div v-if="view === 'list'" class="cc3-combined-pickup-dialog__footer">
+      <div v-if="step === 'picker' && view === 'list'" class="cc3-combined-pickup-dialog__footer">
         <button
           type="button"
           class="cc3-combined-pickup-dialog__confirm"
           :disabled="!activePoint"
-          @click="confirm"
+          @click="bringHere"
         >
-          {{ text.confirm }}
+          {{ text.bringHere }}
+        </button>
+      </div>
+
+      <div v-else-if="step === 'detail'" class="cc3-combined-pickup-dialog__footer">
+        <button type="button" class="cc3-combined-pickup-dialog__confirm" @click="confirm">
+          {{ editProfile ? text.save : text.continue }}
         </button>
 
         <button
@@ -459,6 +553,12 @@ function onKeydown(event: KeyboardEvent) {
     min-height: 0;
 
     overflow: hidden;
+
+    // Шаг уточнения длиннее экрана: прокручивается тело, а кнопка внизу остаётся.
+    &--scroll {
+      overflow-y: auto;
+      overscroll-behavior: contain;
+    }
   }
 
   // Карта забирает всё, что осталось над рядом фильтров. Это граница для

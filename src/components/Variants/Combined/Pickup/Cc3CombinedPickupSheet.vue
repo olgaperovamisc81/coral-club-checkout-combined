@@ -14,13 +14,10 @@ defineProps<{
   address: string
   recipient: string
   meta: string
-  /** Есть, когда окно открыто на правку: пункт можно убрать из книги. */
-  deletable?: boolean
 }>()
 
 const emit = defineEmits<{
   confirm: []
-  delete: []
 }>()
 
 const { t } = useStand()
@@ -30,7 +27,6 @@ const text = computed(() => ({
   hoursWeekday: t('pickup.hours.weekday'),
   hoursWeekend: t('pickup.hours.weekend'),
   confirm: t('combined.bringHere'),
-  remove: t('common.delete'),
 }))
 </script>
 
@@ -56,14 +52,6 @@ const text = computed(() => ({
         {{ text.confirm }}
       </button>
 
-      <button
-        v-if="deletable"
-        type="button"
-        class="cc3-combined-pickup-sheet__delete"
-        @click="emit('delete')"
-      >
-        {{ text.remove }}
-      </button>
     </div>
   </Cc3CombinedPickupSheetFrame>
 </template>
@@ -127,8 +115,7 @@ const text = computed(() => ({
     color: var(--st-content-foreground-color-neutral-secondary);
   }
 
-  &__confirm,
-  &__delete {
+  &__confirm {
     display: flex;
     align-items: center;
     justify-content: center;
@@ -140,19 +127,11 @@ const text = computed(() => ({
 
     @include font('label-md');
 
+    color: var(--st-action-foreground-color-onprimary-normal);
+    background-color: var(--st-action-background-color-positive-normal);
     border: none;
     border-radius: var(--st-global-radius-pill);
     cursor: pointer;
-  }
-
-  &__confirm {
-    color: var(--st-action-foreground-color-onprimary-normal);
-    background-color: var(--st-action-background-color-positive-normal);
-  }
-
-  &__delete {
-    color: var(--st-action-foreground-color-neutral-normal);
-    background: none;
   }
 }
 </style>
