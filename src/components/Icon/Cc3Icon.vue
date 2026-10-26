@@ -66,13 +66,11 @@ withDefaults(defineProps<Props>(), {
     </template>
 
     <template v-else-if="name === 'edit-01'">
-      <svg viewBox="0 0 256 256" width="100%" height="100%" fill="currentColor" stroke="none">
-        <path
-          fill-rule="evenodd"
-          clip-rule="evenodd"
-          d="M227.31,73.37,182.63,28.68a16,16,0,0,0-22.63,0L36.69,152A15.86,15.86,0,0,0,32,163.31V208a16,16,0,0,0,16,16H92.69A15.86,15.86,0,0,0,104,219.31L227.31,96a16,16,0,0,0,0-22.63ZM92.69,208H48V163.31l88-88L180.69,120ZM192,108.68,147.31,64l24-24L216,84.68Z"
-        />
-      </svg>
+      <path
+        stroke-width="2"
+        d="M3.1 20.9 3.6 16.3Q3.7 15.6 4.2 15.1L14.9 4.6Q17.3 2.2 19.1 4L20 5Q21.8 6.8 19.5 8.9L8.9 19.5Q8.4 20 7.7 20.2Z"
+      />
+      <path stroke-width="2" d="M14 5.6 18.3 9.9" />
     </template>
 
     <template v-else-if="name === 'info-circle'">
