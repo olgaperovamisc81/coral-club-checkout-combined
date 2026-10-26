@@ -11,6 +11,11 @@ type PickupFilter = {
 
 defineProps<{
   filters: PickupFilter[]
+  /**
+   * Плавающий вид над картой: таблетки сплошные, без рамки и подложки, чтобы
+   * карта была видна между ними и под ними.
+   */
+  floating?: boolean
 }>()
 
 const emit = defineEmits<{
@@ -19,7 +24,10 @@ const emit = defineEmits<{
 </script>
 
 <template>
-  <div class="cc3-combined-pickup-filters">
+  <div
+    class="cc3-combined-pickup-filters"
+    :class="{ 'cc3-combined-pickup-filters--floating': floating }"
+  >
     <button
       v-for="filter in filters"
       :key="filter.id"
@@ -45,6 +53,28 @@ const emit = defineEmits<{
   overflow-x: auto;
 
   background-color: var(--st-content-background-color-default-solid-normal);
+
+  &--floating {
+    position: absolute;
+    inset-block-end: 0;
+    inset-inline: 0;
+    z-index: 2;
+
+    padding-block-end: var(--st-global-distance-space-inset-4xl);
+
+    background: none;
+
+    .cc3-combined-pickup-filters__chip {
+      border-color: transparent;
+      box-shadow: 0 1px 4px 0 rgb(4 8 13 / 14%);
+
+      &--active {
+        color: var(--st-action-foreground-color-onprimary-normal);
+        background-color: var(--st-action-background-color-positive-normal);
+        box-shadow: none;
+      }
+    }
+  }
 
   &__chip {
     flex-shrink: 0;

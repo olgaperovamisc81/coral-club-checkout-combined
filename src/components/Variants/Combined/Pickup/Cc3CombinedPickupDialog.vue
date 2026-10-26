@@ -393,9 +393,9 @@ function onKeydown(event: KeyboardEvent) {
                 @select="view = $event"
                 @search="isSearchOpen = true"
               />
-            </div>
 
-            <Cc3CombinedPickupFilters :filters="providerFilters" @select="onFilter" />
+              <Cc3CombinedPickupFilters floating :filters="providerFilters" @select="onFilter" />
+            </div>
           </template>
 
           <template v-else>

@@ -100,5 +100,13 @@ onBeforeUnmount(() => observer?.disconnect())
     border: none;
     border-radius: 0;
   }
+
+  // Карта идёт до низа экрана, а ряд фильтров лежит поверх неё. Кнопки
+  // масштаба и подпись правообладателя поднимаем над рядом: подпись обязательна
+  // по условиям OpenStreetMap, а кнопки под таблетками нельзя нажать.
+  .cc3-map__zoom,
+  .cc3-map__attribution {
+    inset-block-end: 80px;
+  }
 }
 </style>
