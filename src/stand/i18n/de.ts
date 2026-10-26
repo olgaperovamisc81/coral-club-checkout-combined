@@ -48,6 +48,7 @@ export default {
   'combined.bringHere': 'Hierher liefern',
   'combined.editTitle': 'Adresse bearbeiten',
   'combined.saveChanges': 'Änderungen speichern',
+  'combined.editPickupTitle': 'Abholpunkt bearbeiten',
 
   // Lieferung und Abholstellen
   'delivery.method.courier': 'Kurier',

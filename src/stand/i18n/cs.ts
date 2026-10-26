@@ -48,6 +48,7 @@ export default {
   'combined.bringHere': 'Doručit sem',
   'combined.editTitle': 'Úprava adresy',
   'combined.saveChanges': 'Uložit změny',
+  'combined.editPickupTitle': 'Úprava výdejního místa',
 
   // Doručení a výdejní místa
   'delivery.method.courier': 'Kurýr',

@@ -48,6 +48,7 @@ export default {
   'combined.bringHere': 'Привезти сюда',
   'combined.editTitle': 'Редактирование',
   'combined.saveChanges': 'Сохранить изменения',
+  'combined.editPickupTitle': 'Редактирование пункта самовывоза',
 
   // Доставка и пункты выдачи
   'delivery.method.courier': 'Курьер',

@@ -164,13 +164,17 @@ function onKeydown(event: KeyboardEvent) {
     align-items: center;
     justify-content: center;
 
-    padding: var(--st-global-distance-space-inset-2xl);
+    // По бокам место под крестик: длинный заголовок не должен наезжать на него.
+    padding: var(--st-global-distance-space-inset-2xl)
+      calc(var(--st-global-distance-space-inset-2xl) + 24px + var(--st-global-distance-space-inset-md));
 
     border-bottom: 1px solid var(--st-content-border-color-neutral-onsubtle);
   }
 
   &__title {
     margin: 0;
+
+    text-align: center;
 
     @include font('label-md');
 

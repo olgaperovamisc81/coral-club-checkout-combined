@@ -54,12 +54,12 @@ const { t, country } = useStand()
 const { recipientValues: profileRecipient } = useStandProfile()
 
 const text = computed(() => ({
-  title: t('pickup.title'),
+  title: props.editProfile ? t('combined.editPickupTitle') : t('pickup.title'),
   close: t('common.close'),
   all: t('common.all'),
   bringHere: t('combined.bringHere'),
   continue: t('common.continue'),
-  save: t('common.save'),
+  save: t('combined.saveChanges'),
   remove: t('common.delete'),
 }))
 
@@ -511,7 +511,9 @@ function onKeydown(event: KeyboardEvent) {
     align-items: center;
     justify-content: center;
 
-    padding: var(--st-global-distance-space-inset-2xl);
+    // По бокам место под крестик: длинный заголовок не должен наезжать на него.
+    padding: var(--st-global-distance-space-inset-2xl)
+      calc(var(--st-global-distance-space-inset-2xl) + 24px + var(--st-global-distance-space-inset-md));
 
     background-color: var(--st-content-background-color-default-solid-normal);
     border-bottom: 1px solid var(--st-content-border-color-neutral-onsubtle);
@@ -519,6 +521,8 @@ function onKeydown(event: KeyboardEvent) {
 
   &__title {
     margin: 0;
+
+    text-align: center;
 
     @include font('label-md');
 
