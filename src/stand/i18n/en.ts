@@ -45,6 +45,7 @@ export default {
   'combined.addressRequired': 'Please add a delivery address first',
   'combined.editAddress': 'Edit address',
   'combined.addPickup': 'Add pickup point',
+  'combined.bringHere': 'Deliver here',
 
   // Delivery and pickup points
   'delivery.method.courier': 'Courier',

@@ -1,0 +1,10 @@
+// Светло-серая подложка таблеток над картой, но непрозрачная: токен onsubtle
+// полупрозрачный и пропустил бы карту сквозь себя. Белая основа под ним даёт
+// тот же цвет, что на белом фоне, и карту не показывает.
+@mixin cc3-combined-pickup-surface {
+  background-color: var(--st-content-background-color-default-solid-normal);
+  background-image: linear-gradient(
+    var(--st-content-background-color-neutral-onsubtle),
+    var(--st-content-background-color-neutral-onsubtle)
+  );
+}

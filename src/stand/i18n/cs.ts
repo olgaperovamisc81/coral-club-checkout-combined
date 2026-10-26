@@ -45,6 +45,7 @@ export default {
   'combined.addressRequired': 'Nejprve přidejte doručovací adresu',
   'combined.editAddress': 'Upravit adresu',
   'combined.addPickup': 'Přidat výdejní místo',
+  'combined.bringHere': 'Doručit sem',
 
   // Doručení a výdejní místa
   'delivery.method.courier': 'Kurýr',

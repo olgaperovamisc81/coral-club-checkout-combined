@@ -11,11 +11,11 @@ import {
 } from '@/stand/config/addressLine'
 import { useStand } from '@/stand/composables/useStand'
 
-import Cc3InlinePickupDialog from '../Inline/Cc3InlinePickupDialog.vue'
 import Cc3ModalDeliveryMethodSwitch from '../Modal/Cc3ModalDeliveryMethodSwitch.vue'
 import type { DeliveryProfile, DeliveryProfileMethod } from '../Modal/deliveryProfile'
 import Cc3CombinedAddressBook from './Cc3CombinedAddressBook.vue'
 import Cc3CombinedAddressForm from './Cc3CombinedAddressForm.vue'
+import Cc3CombinedPickupDialog from './Pickup/Cc3CombinedPickupDialog.vue'
 
 /**
  * Блок доставки комбинированной версии.
@@ -358,20 +358,17 @@ function onPickupDelete(id: string) {
 
       <p class="cc3-combined-delivery__address">{{ addressText }}</p>
 
+      <p class="cc3-combined-delivery__name">{{ selectedContact }}</p>
+
       <p v-if="isPriceVisible" class="cc3-combined-delivery__price">
         {{ selectedEntry.priceLabel }}
       </p>
 
       <div v-if="selectedEntry.method === 'pickup'" class="cc3-combined-delivery__hours">
         <p class="cc3-combined-delivery__hours-title">{{ text.hours }}</p>
-        <p class="cc3-combined-delivery__hours-text">
-          {{ text.hoursWeekday }}
-          <br />
-          {{ text.hoursWeekend }}
-        </p>
+        <p class="cc3-combined-delivery__hours-text">{{ text.hoursWeekday }}</p>
+        <p class="cc3-combined-delivery__hours-text">{{ text.hoursWeekend }}</p>
       </div>
-
-      <p class="cc3-combined-delivery__name">{{ selectedContact }}</p>
     </template>
 
     <Cc3CombinedAddressForm
@@ -392,7 +389,7 @@ function onPickupDelete(id: string) {
       @add="onAddNew"
     />
 
-    <Cc3InlinePickupDialog
+    <Cc3CombinedPickupDialog
       v-if="isPickupDialogOpen"
       :edit-profile="pickupEditProfile"
       @close="isPickupDialogOpen = false"
@@ -445,27 +442,27 @@ function onPickupDelete(id: string) {
     color: var(--st-content-foreground-color-neutral-primary);
   }
 
+  // Срок и цена пункта — зелёным, как имя получателя над ними: так в шторке
+  // пункта на карте, и страница читается как её продолжение.
   &__price {
     margin: 0;
-    padding: var(--st-global-distance-space-inset-xs) var(--st-global-distance-space-inset-2xl)
-      var(--st-global-distance-space-inset-xl);
+    padding: var(--st-global-distance-space-inset-xl) var(--st-global-distance-space-inset-2xl) 0;
 
     @include font('body-md');
-    font-weight: 700;
 
-    color: var(--st-content-foreground-color-neutral-primary);
+    color: var(--st-content-foreground-color-positive-primary);
   }
 
   &__hours {
-    padding: 0 var(--st-global-distance-space-inset-2xl);
+    padding: var(--st-global-distance-space-inset-xl) var(--st-global-distance-space-inset-2xl) 0;
   }
 
   &__hours-title {
-    margin: 0 0 var(--st-global-distance-space-inset-xs);
+    margin: 0;
 
-    @include font('label-md');
+    @include font('body-md');
 
-    color: var(--st-content-foreground-color-neutral-primary);
+    color: var(--st-content-foreground-color-neutral-secondary);
   }
 
   &__hours-text {

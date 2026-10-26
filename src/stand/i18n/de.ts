@@ -45,6 +45,7 @@ export default {
   'combined.addressRequired': 'Bitte zuerst eine Lieferadresse hinzufügen',
   'combined.editAddress': 'Adresse bearbeiten',
   'combined.addPickup': 'Abholpunkt hinzufügen',
+  'combined.bringHere': 'Hierher liefern',
 
   // Lieferung und Abholstellen
   'delivery.method.courier': 'Kurier',

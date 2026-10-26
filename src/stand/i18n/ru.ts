@@ -45,6 +45,7 @@ export default {
   'combined.addressRequired': 'Необходимо добавить адрес доставки',
   'combined.editAddress': 'Изменить адрес',
   'combined.addPickup': 'Добавить пункт самовывоза',
+  'combined.bringHere': 'Привезти сюда',
 
   // Доставка и пункты выдачи
   'delivery.method.courier': 'Курьер',
