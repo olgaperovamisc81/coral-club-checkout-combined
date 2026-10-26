@@ -373,7 +373,7 @@ const modifiers = computed(() => ({
   &__hint {
     @include font('body-xs');
 
-    color: var(--st-content-foreground-color-neutral-tetriary);
+    color: var(--st-content-foreground-color-neutral-secondary);
   }
 
   // Подпись под невалидным полем — это текст ошибки, а не подсказка:
@@ -407,7 +407,7 @@ const modifiers = computed(() => ({
 
     @include font('body-md');
 
-    color: var(--st-content-foreground-color-neutral-tetriary);
+    color: var(--st-content-foreground-color-neutral-secondary);
     pointer-events: none;
     transform: translateY(16px);
     transition:

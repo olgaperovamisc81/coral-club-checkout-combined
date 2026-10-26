@@ -92,7 +92,7 @@ const model = defineModel<string>({ default: '' })
     border: none;
 
     &::placeholder {
-      color: var(--st-content-foreground-color-neutral-tetriary);
+      color: var(--st-content-foreground-color-neutral-secondary);
     }
 
     &:focus {
