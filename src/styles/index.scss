@@ -8,47 +8,40 @@
   box-sizing: border-box;
 }
 
-// Suisse Intl — шрифт дизайн-системы. Файлов шрифта в репозитории нет: он
-// лицензионный, и класть его в проект, который уходит на публичный стенд,
-// нельзя без проверки лицензии. Поэтому правила берут шрифт, уже
-// установленный в системе (local), а на машине без него браузер переходит
-// к Inter и дальше по списку. Чтобы шрифт поехал вместе со стендом, добавьте
-// в src к каждому правилу url('/fonts/<файл>.woff2') и положите файлы в
-// public/fonts — после проверки лицензии.
+// Suisse Intl — шрифт дизайн-системы, лицензия куплена на компанию. Файлы
+// лежат в src/assets/fonts: путь через сборщик, а не через public, чтобы они
+// находились и на стенде под подпапкой GitHub Pages. Файлы .otf, не .woff2:
+// конвертера в проекте нет; при желании их можно сжать и заменить.
 @font-face {
   font-family: 'Suisse Intl';
   font-style: normal;
   font-weight: 400;
-  src:
-    local('SuisseIntl-Regular'),
-    local('Suisse Intl Regular');
+  font-display: swap;
+  src: url('../assets/fonts/SuisseIntl-Regular.otf') format('opentype');
 }
 
 @font-face {
   font-family: 'Suisse Intl';
   font-style: normal;
   font-weight: 500;
-  src:
-    local('SuisseIntl-Medium'),
-    local('Suisse Intl Medium');
+  font-display: swap;
+  src: url('../assets/fonts/SuisseIntl-Medium.otf') format('opentype');
 }
 
 @font-face {
   font-family: 'Suisse Intl';
   font-style: normal;
   font-weight: 600;
-  src:
-    local('SuisseIntl-SemiBold'),
-    local('Suisse Intl SemiBold');
+  font-display: swap;
+  src: url('../assets/fonts/SuisseIntl-SemiBold.otf') format('opentype');
 }
 
 @font-face {
   font-family: 'Suisse Intl';
   font-style: normal;
   font-weight: 700;
-  src:
-    local('SuisseIntl-Bold'),
-    local('Suisse Intl Bold');
+  font-display: swap;
+  src: url('../assets/fonts/SuisseIntl-Bold.otf') format('opentype');
 }
 
 // Стенд открывают с телефона, и вести себя он должен как приложение,
