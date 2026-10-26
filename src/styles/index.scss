@@ -8,6 +8,49 @@
   box-sizing: border-box;
 }
 
+// Suisse Intl — шрифт дизайн-системы. Файлов шрифта в репозитории нет: он
+// лицензионный, и класть его в проект, который уходит на публичный стенд,
+// нельзя без проверки лицензии. Поэтому правила берут шрифт, уже
+// установленный в системе (local), а на машине без него браузер переходит
+// к Inter и дальше по списку. Чтобы шрифт поехал вместе со стендом, добавьте
+// в src к каждому правилу url('/fonts/<файл>.woff2') и положите файлы в
+// public/fonts — после проверки лицензии.
+@font-face {
+  font-family: 'Suisse Intl';
+  font-style: normal;
+  font-weight: 400;
+  src:
+    local('SuisseIntl-Regular'),
+    local('Suisse Intl Regular');
+}
+
+@font-face {
+  font-family: 'Suisse Intl';
+  font-style: normal;
+  font-weight: 500;
+  src:
+    local('SuisseIntl-Medium'),
+    local('Suisse Intl Medium');
+}
+
+@font-face {
+  font-family: 'Suisse Intl';
+  font-style: normal;
+  font-weight: 600;
+  src:
+    local('SuisseIntl-SemiBold'),
+    local('Suisse Intl SemiBold');
+}
+
+@font-face {
+  font-family: 'Suisse Intl';
+  font-style: normal;
+  font-weight: 700;
+  src:
+    local('SuisseIntl-Bold'),
+    local('Suisse Intl Bold');
+}
+
 // Стенд открывают с телефона, и вести себя он должен как приложение,
 // а не как страница: по ширине экрана, без горизонтального сдвига,
 // без «резинки» по краям и без масштабирования всей страницы.
@@ -45,7 +88,14 @@ body {
   // её больше не масштабируют.
   touch-action: pan-x pan-y;
 
-  font-family: Inter, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  font-family: 'Suisse Intl', Inter, -apple-system, 'Segoe UI', Roboto, sans-serif;
+
+  // Без сглаживания на Mac буквы выходят толще и мягче, а текст — серее, чем
+  // в макете. Серые оттенки и так светлые, и лишняя «пухлость» штриха
+  // превращает их в размытое пятно.
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizelegibility;
   color: var(--st-content-foreground-color-neutral-primary);
   background-color: var(--st-content-background-color-neutral-secondary);
   -webkit-tap-highlight-color: transparent;
