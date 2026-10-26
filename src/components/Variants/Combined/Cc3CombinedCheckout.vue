@@ -102,7 +102,9 @@ watch(
 
         <Cc3CombinedDeliveryOptions v-model="courierVariant" :resolved="isResolved" />
 
-        <Cc3InlineDeliverySlots v-if="isResolved" :variant-id="courierVariant" />
+        <div v-if="isResolved" class="cc3-combined-checkout__slots">
+          <Cc3InlineDeliverySlots :variant-id="courierVariant" />
+        </div>
       </section>
 
       <Cc3CombinedPaymentMethods />
@@ -158,6 +160,12 @@ watch(
   &__options {
     padding-right: var(--st-global-distance-space-inset-2xl);
     padding-left: var(--st-global-distance-space-inset-2xl);
+  }
+
+  // Слоты — общий компонент с инлайном, там отступ над ними свой. Здесь
+  // список способов стоит рамкой, и слотам нужен воздух под ней.
+  &__slots {
+    padding-top: var(--st-global-distance-space-inset-2xl);
   }
 
   &__options-title {
