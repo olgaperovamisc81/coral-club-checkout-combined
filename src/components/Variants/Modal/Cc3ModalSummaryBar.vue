@@ -11,8 +11,8 @@ import Cc3ModalOrderSummaryBody from './Cc3ModalOrderSummaryBody.vue'
 /**
  * Шапка сводки заказа над телом чекаута.
  *
- * Прилипает к верху экрана и несёт с собой итоговую сумму, пока в экран не
- * войдёт сам блок сводки внизу страницы. По нажатию раскрывается в полную
+ * Стоит в начале страницы и уезжает вверх вместе с ней: прилипшая полоса
+ * занимала бы место на каждом экране. По нажатию раскрывается в полную
  * сводку — ту же самую, что и внизу.
  *
  * До этого кнопка переключала флаг, который в концептах никто не читал:
@@ -20,7 +20,7 @@ import Cc3ModalOrderSummaryBody from './Cc3ModalOrderSummaryBody.vue'
  */
 const { t } = useStand()
 const { summary } = useCheckout()
-const { isExpanded, isSticky, toggle, setBarHeight, resetSticky } = useSummarySticky()
+const { isExpanded, toggle, setBarHeight, resetSticky } = useSummarySticky()
 
 const text = computed(() => ({
   title: t('summary.title'),
@@ -37,7 +37,7 @@ onBeforeUnmount(resetSticky)
 </script>
 
 <template>
-  <div class="cc3-modal-summary-bar" :class="{ 'cc3-modal-summary-bar--sticky': isSticky }">
+  <div class="cc3-modal-summary-bar">
     <button ref="headRef" type="button" class="cc3-modal-summary-bar__head" @click="toggle">
       <span class="cc3-modal-summary-bar__label">
         {{ text.title }}
@@ -54,9 +54,8 @@ onBeforeUnmount(resetSticky)
   </div>
 
   <!--
-    Раскрытая сводка стоит отдельно от прилипающей полосы, в обычном потоке
-    страницы: она раздвигает содержимое и уезжает вверх вместе с ним, а не
-    висит поверх. Полоса с суммой при этом остаётся у верха экрана.
+    Раскрытая сводка стоит в обычном потоке страницы: она раздвигает
+    содержимое и уезжает вверх вместе с ним, а не висит поверх.
   -->
   <div v-if="isExpanded" class="cc3-modal-summary-bar__panel">
     <Cc3ModalOrderSummaryBody compact />
@@ -65,17 +64,9 @@ onBeforeUnmount(resetSticky)
 
 <style lang="scss">
 .cc3-modal-summary-bar {
-  // Непрозрачная основа под полосой. Токен neutral-disable — полупрозрачный
-  // налёт (8% синего), и в обычном потоке он лежал на белой странице. У
-  // прилипшей полосы под ним едет содержимое страницы, и сквозь налёт было
-  // видно поля формы.
+  // Непрозрачная основа под полосой: токен neutral-disable — полупрозрачный
+  // налёт (8% синего), и под ним должна быть белая страница.
   background-color: var(--st-content-background-color-default-solid-normal);
-
-  &--sticky {
-    position: sticky;
-    top: 0;
-    z-index: 5;
-  }
 
   &__head {
     display: flex;
