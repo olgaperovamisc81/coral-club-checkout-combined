@@ -3,7 +3,7 @@ import { computed } from 'vue'
 
 import { useStand } from '@/stand/composables/useStand'
 
-import Cc3CombinedPickupSheetFrame from './Cc3CombinedPickupSheetFrame.vue'
+import Cc3CombinedSheetFrame from '../Cc3CombinedSheetFrame.vue'
 
 /**
  * Шторка выбранного пункта: название, адрес, получатель, срок и цена, часы
@@ -31,7 +31,7 @@ const text = computed(() => ({
 </script>
 
 <template>
-  <Cc3CombinedPickupSheetFrame>
+  <Cc3CombinedSheetFrame>
     <div class="cc3-combined-pickup-sheet">
       <h3 class="cc3-combined-pickup-sheet__title">{{ title }}</h3>
 
@@ -53,7 +53,7 @@ const text = computed(() => ({
       </button>
 
     </div>
-  </Cc3CombinedPickupSheetFrame>
+  </Cc3CombinedSheetFrame>
 </template>
 
 <style lang="scss">

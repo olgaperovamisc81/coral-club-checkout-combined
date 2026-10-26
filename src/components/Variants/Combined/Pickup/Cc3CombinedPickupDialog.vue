@@ -12,11 +12,11 @@ import type { AddressSuggestion } from '@/stand/suggest'
 
 import Cc3ModalConfirmDialog from '../../Modal/Cc3ModalConfirmDialog.vue'
 import type { DeliveryProfile } from '../../Modal/deliveryProfile'
+import Cc3CombinedSearchSheet from '../Cc3CombinedSearchSheet.vue'
 import Cc3CombinedPickupDetail from './Cc3CombinedPickupDetail.vue'
 import Cc3CombinedPickupFilters from './Cc3CombinedPickupFilters.vue'
 import Cc3CombinedPickupList from './Cc3CombinedPickupList.vue'
 import Cc3CombinedPickupMap from './Cc3CombinedPickupMap.vue'
-import Cc3CombinedPickupSearch from './Cc3CombinedPickupSearch.vue'
 import Cc3CombinedPickupSheet from './Cc3CombinedPickupSheet.vue'
 import Cc3CombinedPickupSwitch from './Cc3CombinedPickupSwitch.vue'
 
@@ -428,7 +428,7 @@ function onKeydown(event: KeyboardEvent) {
           <template v-if="isSearchOpen">
             <div class="cc3-combined-pickup-dialog__dim" @click="isSearchOpen = false" />
 
-            <Cc3CombinedPickupSearch :initial-query="address" @pick="onPickSuggestion" />
+            <Cc3CombinedSearchSheet :initial-query="address" @pick="onPickSuggestion" />
           </template>
         </template>
 

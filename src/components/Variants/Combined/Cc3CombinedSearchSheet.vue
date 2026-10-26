@@ -6,13 +6,16 @@ import { useAddressSuggest } from '@/stand/composables/useAddressSuggest'
 import { useStand } from '@/stand/composables/useStand'
 import type { AddressSuggestion } from '@/stand/suggest'
 
-import Cc3CombinedPickupSheetFrame from './Cc3CombinedPickupSheetFrame.vue'
+import Cc3CombinedSheetFrame from './Cc3CombinedSheetFrame.vue'
 
 /**
  * Шторка поиска адреса: поле сверху и список подсказок на всю остальную
  * высоту. Подсказка — это название жирным по введённой части и серая строка
- * района под ним. Выбор подсказки возвращает адрес, а карта и список
- * сами показывают ближайшие пункты.
+ * района под ним. Выбор подсказки возвращает адрес. Её используют и карта
+ * самовывоза, и карта выбора адреса курьера.
+ *
+ * Enter, когда подсказок нет, отдаёт набранное как есть: сервис мог ничего не
+ * найти или не ответить, и тогда адрес остаётся ввести руками.
  */
 const props = defineProps<{
   initialQuery: string
@@ -20,13 +23,14 @@ const props = defineProps<{
 
 const emit = defineEmits<{
   pick: [suggestion: AddressSuggestion]
+  submit: [query: string]
 }>()
 
 const { t } = useStand()
 const { items, status, ask, reset } = useAddressSuggest()
 
 const text = computed(() => ({
-  placeholder: t('common.findAddress'),
+  placeholder: t('concept.common.findAddress'),
   loading: t('suggest.loading'),
   empty: t('suggest.empty'),
 }))
@@ -68,6 +72,12 @@ const rows = computed(() =>
   }),
 )
 
+function onEnter() {
+  if (items.value.length === 0) {
+    emit('submit', query.value)
+  }
+}
+
 const note = computed(() => {
   if (status.value === 'loading') return text.value.loading
   if (status.value === 'empty' || status.value === 'error') return text.value.empty
@@ -77,37 +87,37 @@ const note = computed(() => {
 </script>
 
 <template>
-  <Cc3CombinedPickupSheetFrame tall>
-    <div ref="sheetRef" class="cc3-combined-pickup-search">
-      <div class="cc3-combined-pickup-search__field">
+  <Cc3CombinedSheetFrame tall>
+    <div ref="sheetRef" class="cc3-combined-search-sheet" @keydown.enter="onEnter">
+      <div class="cc3-combined-search-sheet__field">
         <Cc3InputField v-model="query" type="text" :placeholder="text.placeholder" />
       </div>
 
-      <div class="cc3-combined-pickup-search__results">
-        <ul v-if="rows.length > 0" class="cc3-combined-pickup-search__list">
+      <div class="cc3-combined-search-sheet__results">
+        <ul v-if="rows.length > 0" class="cc3-combined-search-sheet__list">
           <li v-for="row in rows" :key="row.item.id">
             <button
               type="button"
-              class="cc3-combined-pickup-search__option"
+              class="cc3-combined-search-sheet__option"
               @click="emit('pick', row.item)"
             >
-              <span class="cc3-combined-pickup-search__title">
+              <span class="cc3-combined-search-sheet__title">
                 {{ row.before }}<strong>{{ row.bold }}</strong>{{ row.rest }}
               </span>
 
-              <span class="cc3-combined-pickup-search__area">{{ row.area }}</span>
+              <span class="cc3-combined-search-sheet__area">{{ row.area }}</span>
             </button>
           </li>
         </ul>
 
-        <p v-if="note" class="cc3-combined-pickup-search__note">{{ note }}</p>
+        <p v-if="note" class="cc3-combined-search-sheet__note">{{ note }}</p>
       </div>
     </div>
-  </Cc3CombinedPickupSheetFrame>
+  </Cc3CombinedSheetFrame>
 </template>
 
 <style lang="scss">
-.cc3-combined-pickup-search {
+.cc3-combined-search-sheet {
   display: flex;
   flex: 1;
   flex-direction: column;

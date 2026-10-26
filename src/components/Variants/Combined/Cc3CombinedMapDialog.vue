@@ -10,7 +10,7 @@ import { useStand } from '@/stand/composables/useStand'
 import { reverseAddress } from '@/stand/suggest'
 import type { AddressSuggestion } from '@/stand/suggest'
 
-import Cc3CombinedSearchDialog from './Cc3CombinedSearchDialog.vue'
+import Cc3CombinedSearchSheet from './Cc3CombinedSearchSheet.vue'
 
 /**
  * Окно выбора адреса на карте. Метка стоит неподвижно в середине, под ней
@@ -147,7 +147,13 @@ watch(isSearchOpen, (open) => {
 })
 
 function onKeydown(event: KeyboardEvent) {
-  if (event.key === 'Escape' && !isSearchOpen.value) {
+  if (event.key !== 'Escape') {
+    return
+  }
+
+  if (isSearchOpen.value) {
+    isSearchOpen.value = false
+  } else {
     emit('close')
   }
 }
@@ -175,50 +181,55 @@ function onKeydown(event: KeyboardEvent) {
         </button>
       </div>
 
-      <div ref="mapBoxRef" class="cc3-combined-map-dialog__map">
-        <Cc3Map
-          :center="center"
-          :zoom="14"
-          :markers="[]"
-          :height="mapHeight"
-          @select="onMapMove"
-          @move="onMapMove"
-        />
+      <!-- Тело — граница для шторки поиска: она занимает его почти целиком. -->
+      <div class="cc3-combined-map-dialog__body">
+        <div ref="mapBoxRef" class="cc3-combined-map-dialog__map">
+          <Cc3Map
+            :center="center"
+            :zoom="14"
+            :markers="[]"
+            :height="mapHeight"
+            @select="onMapMove"
+            @move="onMapMove"
+          />
 
-        <span class="cc3-combined-map-dialog__pin">
-          <Cc3MapPin variant="positive" icon="delivery-truck" />
-        </span>
-      </div>
-
-      <div class="cc3-combined-map-dialog__controls">
-        <button
-          type="button"
-          class="cc3-combined-map-dialog__search"
-          @click="isSearchOpen = true"
-        >
-          <Cc3Icon name="search-md" :size="20" />
-
-          <span
-            class="cc3-combined-map-dialog__search-text"
-            :class="{ 'cc3-combined-map-dialog__search-text--empty': !label }"
-          >
-            {{ label || text.placeholder }}
+          <span class="cc3-combined-map-dialog__pin">
+            <Cc3MapPin variant="positive" icon="delivery-truck" />
           </span>
-        </button>
+        </div>
 
-        <button type="button" class="cc3-combined-map-dialog__continue" @click="confirm">
-          {{ text.continue }}
-        </button>
+        <div class="cc3-combined-map-dialog__controls">
+          <button
+            type="button"
+            class="cc3-combined-map-dialog__search"
+            @click="isSearchOpen = true"
+          >
+            <Cc3Icon name="search-md" :size="20" />
+
+            <span
+              class="cc3-combined-map-dialog__search-text"
+              :class="{ 'cc3-combined-map-dialog__search-text--empty': !label }"
+            >
+              {{ label || text.placeholder }}
+            </span>
+          </button>
+
+          <button type="button" class="cc3-combined-map-dialog__continue" @click="confirm">
+            {{ text.continue }}
+          </button>
+        </div>
+
+        <template v-if="isSearchOpen">
+          <div class="cc3-combined-map-dialog__dim" @click="isSearchOpen = false" />
+
+          <Cc3CombinedSearchSheet
+            :initial-query="label"
+            @pick="onPick"
+            @submit="onSubmitQuery"
+          />
+        </template>
       </div>
     </div>
-
-    <Cc3CombinedSearchDialog
-      v-if="isSearchOpen"
-      :initial-query="label"
-      @close="isSearchOpen = false"
-      @pick="onPick"
-      @submit="onSubmitQuery"
-    />
   </Teleport>
 </template>
 
@@ -249,6 +260,7 @@ function onKeydown(event: KeyboardEvent) {
 
   &__header {
     position: relative;
+    z-index: 4;
 
     display: flex;
     align-items: center;
@@ -256,7 +268,31 @@ function onKeydown(event: KeyboardEvent) {
 
     padding: var(--st-global-distance-space-inset-2xl);
 
+    background-color: var(--st-content-background-color-default-solid-normal);
     border-bottom: 1px solid var(--st-content-border-color-neutral-onsubtle);
+  }
+
+  // Тело — остаток экрана под шапкой и граница для шторки поиска.
+  &__body {
+    position: relative;
+    z-index: 0;
+
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+
+    min-height: 0;
+
+    overflow: hidden;
+  }
+
+  // Затемнение под шторкой; нажатие на него шторку закрывает.
+  &__dim {
+    position: absolute;
+    inset: 0;
+    z-index: 2;
+
+    background-color: var(--st-content-background-color-neutral-mute);
   }
 
   &__title {

@@ -11,15 +11,15 @@ defineProps<{
 </script>
 
 <template>
-  <div class="cc3-combined-pickup-sheet-frame" :class="{ 'cc3-combined-pickup-sheet-frame--tall': tall }">
-    <span class="cc3-combined-pickup-sheet-frame__handle" />
+  <div class="cc3-combined-sheet-frame" :class="{ 'cc3-combined-sheet-frame--tall': tall }">
+    <span class="cc3-combined-sheet-frame__handle" />
 
     <slot />
   </div>
 </template>
 
 <style lang="scss">
-.cc3-combined-pickup-sheet-frame {
+.cc3-combined-sheet-frame {
   position: absolute;
   inset-block-end: 0;
   inset-inline: 0;
