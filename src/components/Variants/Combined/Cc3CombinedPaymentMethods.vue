@@ -123,8 +123,8 @@ watch(methods, (list) => {
   &__icon {
     flex-shrink: 0;
 
-    width: 40px;
-    height: 40px;
+    width: 32px;
+    height: 32px;
 
     border-radius: var(--st-global-radius-pill);
     object-fit: cover;
