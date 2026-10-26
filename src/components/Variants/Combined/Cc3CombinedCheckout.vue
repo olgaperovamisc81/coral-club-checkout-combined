@@ -136,23 +136,24 @@ watch(
 
   background-color: var(--st-content-background-color-default-solid-normal);
 
+  // Шапка и раскрытая сводка общие с модальной версией и рисуют свою линию.
+  // Здесь линий нет, поэтому гасим их, не трогая саму модальную.
+  .cc3-modal-header {
+    border-bottom: none;
+  }
+
+  .cc3-modal-summary-bar__panel {
+    border-top: none;
+  }
+
+  // Разделителей между блоками нет, как в макете: блоки разделяют только
+  // отступы.
   &__body {
     display: flex;
     flex-direction: column;
     gap: var(--st-global-distance-space-inset-2xl);
 
     padding-top: var(--st-global-distance-space-inset-2xl);
-
-    // Серый разделитель между блоками, как в макете — у всех секций, кроме
-    // первой: доставка идёт сразу за сводкой заказа, без линии.
-    > :not(:first-child) {
-      border-top: 1px solid var(--st-content-border-color-neutral-implicit);
-      padding-top: var(--st-global-distance-space-inset-2xl);
-    }
-
-    > :first-child {
-      padding-bottom: 4px;
-    }
   }
 
   // Отступы по краям как у остальных блоков страницы: сами списки
