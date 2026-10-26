@@ -11,6 +11,7 @@ import type { AddressSuggestion } from '@/stand/suggest'
 
 import Cc3ModalConfirmDialog from '../../Modal/Cc3ModalConfirmDialog.vue'
 import type { DeliveryProfile } from '../../Modal/deliveryProfile'
+import Cc3CombinedPickupFilters from './Cc3CombinedPickupFilters.vue'
 import Cc3CombinedPickupList from './Cc3CombinedPickupList.vue'
 import Cc3CombinedPickupMap from './Cc3CombinedPickupMap.vue'
 import Cc3CombinedPickupSearch from './Cc3CombinedPickupSearch.vue'
@@ -152,7 +153,7 @@ const markers = computed(() =>
 
 const mapView = computed(() => ({
   center: focusPoint.value ?? mapCenter.value,
-  zoom: focusPoint.value ? 12 : 9,
+  zoom: focusPoint.value ? 11 : 9,
 }))
 
 // ─── Получатель ──────────────────────────────────────────────────────────────
@@ -291,36 +292,47 @@ function onKeydown(event: KeyboardEvent) {
       </div>
 
       <div class="cc3-combined-pickup-dialog__body">
-        <Cc3CombinedPickupMap
-          v-if="view === 'map'"
-          :key="mapKey"
-          :markers="markers"
-          :selected-id="selectedId"
-          :center="mapView.center"
-          :zoom="mapView.zoom"
-          @pick="selectedId = $event"
-          @deselect="selectedId = undefined"
-        />
+        <template v-if="view === 'map'">
+          <div class="cc3-combined-pickup-dialog__stage">
+            <Cc3CombinedPickupMap
+              :key="mapKey"
+              :markers="markers"
+              :selected-id="selectedId"
+              :center="mapView.center"
+              :zoom="mapView.zoom"
+              @pick="selectedId = $event"
+              @deselect="selectedId = undefined"
+            />
 
-        <Cc3CombinedPickupSwitch
-          class="cc3-combined-pickup-dialog__switch"
-          :class="{ 'cc3-combined-pickup-dialog__switch--floating': view === 'map' }"
-          :view="view"
-          :searchable="view === 'map'"
-          @select="view = $event"
-          @search="isSearchOpen = true"
-        />
+            <Cc3CombinedPickupSwitch
+              class="cc3-combined-pickup-dialog__switch cc3-combined-pickup-dialog__switch--floating"
+              :view="view"
+              searchable
+              @select="view = $event"
+              @search="isSearchOpen = true"
+            />
+          </div>
 
-        <Cc3CombinedPickupList
-          v-if="view === 'list'"
-          :points="listItems"
-          :filters="providerFilters"
-          :selected-id="selectedId"
-          :address="address"
-          @select="selectedId = $event"
-          @filter="onFilter"
-          @search="isSearchOpen = true"
-        />
+          <Cc3CombinedPickupFilters :filters="providerFilters" @select="onFilter" />
+        </template>
+
+        <template v-else>
+          <Cc3CombinedPickupSwitch
+            class="cc3-combined-pickup-dialog__switch"
+            :view="view"
+            @select="view = $event"
+          />
+
+          <Cc3CombinedPickupList
+            :points="listItems"
+            :filters="providerFilters"
+            :selected-id="selectedId"
+            :address="address"
+            @select="selectedId = $event"
+            @filter="onFilter"
+            @search="isSearchOpen = true"
+          />
+        </template>
 
         <Cc3CombinedPickupSheet
           v-if="isSheetVisible && sheet"
@@ -449,8 +461,16 @@ function onKeydown(event: KeyboardEvent) {
     overflow: hidden;
   }
 
-  // На карте ряд «Карта / Список» плывёт поверх неё, а в списке стоит
-  // обычной строкой над полем адреса.
+  // Карта забирает всё, что осталось над рядом фильтров. Это граница для
+  // самой карты и для ряда «Карта / Список», который плывёт поверх неё.
+  &__stage {
+    position: relative;
+    flex: 1;
+
+    min-height: 0;
+  }
+
+  // В списке ряд «Карта / Список» стоит обычной строкой над полем адреса.
   &__switch {
     flex-shrink: 0;
 

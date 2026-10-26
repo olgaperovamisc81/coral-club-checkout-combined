@@ -4,6 +4,8 @@ import { computed } from 'vue'
 import Cc3InputField from '@/components/Field/Cc3InputField.vue'
 import { useStand } from '@/stand/composables/useStand'
 
+import Cc3CombinedPickupFilters from './Cc3CombinedPickupFilters.vue'
+
 /**
  * Вкладка «Список»: поле адреса, фильтр по службам и пункты в столбик.
  * Поле не печатает само, а открывает шторку поиска — подсказки одни и те
@@ -56,18 +58,7 @@ const text = computed(() => ({
       </div>
     </div>
 
-    <div class="cc3-combined-pickup-list__chips">
-      <button
-        v-for="filter in filters"
-        :key="filter.id"
-        type="button"
-        class="cc3-combined-pickup-list__chip"
-        :class="{ 'cc3-combined-pickup-list__chip--active': filter.active }"
-        @click="emit('filter', filter.id)"
-      >
-        {{ filter.label }}
-      </button>
-    </div>
+    <Cc3CombinedPickupFilters :filters="filters" @select="emit('filter', $event)" />
 
     <div v-if="points.length > 0" class="cc3-combined-pickup-list__items">
       <button
@@ -118,38 +109,6 @@ const text = computed(() => ({
     .cc3-input-field__input {
       cursor: pointer;
       pointer-events: none;
-    }
-  }
-
-  &__chips {
-    display: flex;
-    flex-shrink: 0;
-    flex-wrap: nowrap;
-    gap: var(--st-global-distance-space-inset-md);
-
-    padding: var(--st-global-distance-space-inset-md) var(--st-global-distance-space-inset-2xl);
-
-    overflow-x: auto;
-  }
-
-  &__chip {
-    flex-shrink: 0;
-
-    padding: var(--st-global-distance-space-inset-sm) var(--st-global-distance-space-inset-xl);
-
-    font-family: inherit;
-
-    @include font('label-md');
-
-    color: var(--st-content-foreground-color-neutral-primary);
-    background-color: var(--st-content-background-color-default-solid-normal);
-    border: 1px solid var(--st-content-border-color-neutral-implicit);
-    border-radius: var(--st-global-radius-pill);
-    cursor: pointer;
-
-    &--active {
-      color: var(--st-action-foreground-color-positive-normal);
-      border-color: var(--st-action-foreground-color-positive-normal);
     }
   }
 
