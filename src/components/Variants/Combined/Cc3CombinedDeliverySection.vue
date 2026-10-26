@@ -14,6 +14,7 @@ import { useStand } from '@/stand/composables/useStand'
 import Cc3ModalDeliveryMethodSwitch from '../Modal/Cc3ModalDeliveryMethodSwitch.vue'
 import type { DeliveryProfile, DeliveryProfileMethod } from '../Modal/deliveryProfile'
 import Cc3CombinedAddressBook from './Cc3CombinedAddressBook.vue'
+import Cc3CombinedAddressEditDialog from './Cc3CombinedAddressEditDialog.vue'
 import Cc3CombinedAddressForm from './Cc3CombinedAddressForm.vue'
 import Cc3CombinedPickupDialog from './Pickup/Cc3CombinedPickupDialog.vue'
 
@@ -77,6 +78,7 @@ const editingEntryId = ref<string>()
 const mode = ref<Mode>(selectedEntryId.value ? 'summary' : 'form')
 const isBookOpen = ref(false)
 const isPickupDialogOpen = ref(false)
+const isEditDialogOpen = ref(false)
 const lastSelectedIds = ref<Partial<Record<DeliveryProfileMethod, string>>>({})
 const sectionRef = ref<HTMLElement>()
 
@@ -96,6 +98,7 @@ watch([country, user], () => {
   editingEntryId.value = undefined
   isBookOpen.value = false
   isPickupDialogOpen.value = false
+  isEditDialogOpen.value = false
   lastSelectedIds.value = {}
   draft.value = { complete: false }
   formKey.value += 1
@@ -286,9 +289,22 @@ function onEditEntry(id: string) {
     return
   }
 
-  draft.value = { complete: false }
-  formKey.value += 1
-  mode.value = 'form'
+  // Адрес курьера правится окном на весь экран, а не формой на странице.
+  isEditDialogOpen.value = true
+}
+
+function onEditConfirm(profile: DeliveryProfile) {
+  upsert(profile)
+
+  selectedEntryId.value = profile.id
+  editingEntryId.value = undefined
+  isEditDialogOpen.value = false
+  mode.value = 'summary'
+}
+
+function onEditClose() {
+  isEditDialogOpen.value = false
+  editingEntryId.value = undefined
 }
 
 function onAddNew() {
@@ -315,12 +331,13 @@ function onPickupConfirm(profile: DeliveryProfile) {
   void nextTick(() => sectionRef.value?.scrollIntoView({ behavior: 'smooth', block: 'start' }))
 }
 
-function onPickupDelete(id: string) {
+function onEntryDelete(id: string) {
   const wasSelected = selectedEntryId.value === id
 
   entries.value = entries.value.filter((entry) => entry.id !== id)
   editingEntryId.value = undefined
   isPickupDialogOpen.value = false
+  isEditDialogOpen.value = false
 
   if (wasSelected) {
     selectedEntryId.value = undefined
@@ -375,11 +392,14 @@ function onPickupDelete(id: string) {
       </div>
     </template>
 
-    <Cc3CombinedAddressForm
-      v-else
-      :key="formKey"
-      :edit-profile="editingEntry && editingEntry.method === 'courier' ? editingEntry : undefined"
-      @change="onFormChange"
+    <Cc3CombinedAddressForm v-else :key="formKey" @change="onFormChange" />
+
+    <Cc3CombinedAddressEditDialog
+      v-if="isEditDialogOpen && editingEntry"
+      :edit-profile="editingEntry"
+      @close="onEditClose"
+      @confirm="onEditConfirm"
+      @delete="onEntryDelete"
     />
 
     <Cc3CombinedAddressBook
@@ -398,7 +418,7 @@ function onPickupDelete(id: string) {
       :edit-profile="pickupEditProfile"
       @close="isPickupDialogOpen = false"
       @confirm="onPickupConfirm"
-      @delete="onPickupDelete"
+      @delete="onEntryDelete"
     />
   </section>
 </template>
