@@ -84,20 +84,22 @@ const text = computed(() => ({
     </dl>
 
     <div class="cc3-modal-order-summary-body__promo">
-      <input
-        v-model="promoCode"
-        type="text"
-        :placeholder="text.promoPlaceholder"
-        class="cc3-modal-order-summary-body__promo-input"
-      />
+      <div class="cc3-modal-order-summary-body__promo-field">
+        <input
+          v-model="promoCode"
+          type="text"
+          :placeholder="text.promoPlaceholder"
+          class="cc3-modal-order-summary-body__promo-input"
+        />
 
-      <button
-        type="button"
-        class="cc3-modal-order-summary-body__promo-apply"
-        :disabled="!promoCode"
-      >
-        {{ text.apply }}
-      </button>
+        <button
+          type="button"
+          class="cc3-modal-order-summary-body__promo-apply"
+          :disabled="!promoCode"
+        >
+          {{ text.apply }}
+        </button>
+      </div>
     </div>
   </div>
 </template>
@@ -187,52 +189,68 @@ const text = computed(() => ({
   }
 
   &__promo {
+    padding: 0 var(--st-global-distance-space-inset-2xl) var(--st-global-distance-space-inset-2xl);
+  }
+
+  // Рамка у обёртки, а не у input: кнопка «Применить» лежит внутри поля.
+  &__promo-field {
     display: flex;
+    align-items: center;
     gap: var(--st-global-distance-space-inset-md);
 
-    padding: 0 var(--st-global-distance-space-inset-2xl) var(--st-global-distance-space-inset-2xl);
+    padding: 0 var(--st-global-distance-space-inset-xl);
+    height: 44px;
+
+    background-color: var(--st-interaction-background-color-ghost-normal);
+    border: 2px solid var(--st-interaction-border-color-neutral-normal);
+    border-radius: var(--st-global-radius-sm);
+
+    &:focus-within {
+      border-color: var(--st-action-background-color-positive-normal);
+    }
   }
 
   &__promo-input {
     flex: 1;
     min-width: 0;
 
-    padding: var(--st-global-distance-space-inset-lg) var(--st-global-distance-space-inset-xl);
+    padding: 0;
+    height: 100%;
 
     font-family: inherit;
 
     @include font('body-sm');
 
     color: var(--st-content-foreground-color-neutral-primary);
-    background-color: var(--st-interaction-background-color-ghost-normal);
-    border: 2px solid var(--st-interaction-border-color-neutral-normal);
-    border-radius: var(--st-global-radius-sm);
+    background: none;
+    border: none;
 
     &::placeholder {
       color: var(--st-content-foreground-color-neutral-tetriary);
     }
 
     &:focus {
-      border-color: var(--st-action-background-color-positive-normal);
       outline: none;
     }
   }
 
   &__promo-apply {
-    padding: var(--st-global-distance-space-inset-lg);
+    flex-shrink: 0;
+
+    padding: 0;
 
     font-family: inherit;
 
     @include font('label-sm');
 
     color: var(--st-action-foreground-color-neutral-normal);
+    text-decoration: underline;
     background: none;
-    border: 1px solid var(--st-action-foreground-color-neutral-normal);
-    border-radius: var(--st-global-radius-sm);
+    border: none;
     cursor: pointer;
 
     &:disabled {
-      opacity: 0.5;
+      color: var(--st-content-foreground-color-neutral-tetriary);
       cursor: not-allowed;
     }
   }
