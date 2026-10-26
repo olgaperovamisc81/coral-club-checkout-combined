@@ -133,12 +133,7 @@ function onKeydown(event: KeyboardEvent) {
                   <span class="cc3-combined-address-book__type">{{ entry.typeLabel }}</span>
                   <span class="cc3-combined-address-book__name">{{ entry.name }}</span>
                   <span class="cc3-combined-address-book__address">{{ entry.addressLine }}</span>
-                  <span
-                    v-if="entry.method === 'pickup'"
-                    class="cc3-combined-address-book__price"
-                  >
-                    {{ entry.priceLabel }}
-                  </span>
+                  <span class="cc3-combined-address-book__price">{{ entry.priceLabel }}</span>
                 </span>
 
                 <input
@@ -304,8 +299,7 @@ function onKeydown(event: KeyboardEvent) {
     justify-content: space-between;
     gap: var(--st-global-distance-space-inset-xl);
 
-    padding: var(--st-global-distance-space-inset-xl) var(--st-global-distance-space-inset-2xl)
-      var(--st-global-distance-space-inset-xs);
+    padding: var(--st-global-distance-space-inset-2xl) var(--st-global-distance-space-inset-2xl) 0;
 
     cursor: pointer;
   }
@@ -317,29 +311,31 @@ function onKeydown(event: KeyboardEvent) {
     min-width: 0;
   }
 
+  // Тип, имя, адрес и срок с ценой — по макету: тип и адрес обычным текстом,
+  // имя жирным и срок с ценой зелёным, как в блоке доставки на странице.
   &__type {
-    @include font('label-xs');
-
-    color: var(--st-content-foreground-color-neutral-secondary);
-  }
-
-  &__name {
     @include font('body-md');
-    font-weight: 700;
 
     color: var(--st-content-foreground-color-neutral-primary);
   }
 
+  &__name {
+    @include font('label-lg');
+    font-weight: 700;
+
+    color: var(--st-content-foreground-color-positive-primary);
+  }
+
   &__address {
-    @include font('body-sm');
+    @include font('body-md');
 
     color: var(--st-content-foreground-color-neutral-primary);
   }
 
   &__price {
-    @include font('body-sm');
+    @include font('body-md');
 
-    color: var(--st-content-foreground-color-neutral-secondary);
+    color: var(--st-content-foreground-color-positive-primary);
   }
 
   &__radio {
@@ -349,14 +345,15 @@ function onKeydown(event: KeyboardEvent) {
   &__edit {
     align-self: flex-start;
 
-    padding: var(--st-global-distance-space-inset-md) var(--st-global-distance-space-inset-2xl)
-      var(--st-global-distance-space-inset-xl);
+    padding: var(--st-global-distance-space-inset-sm) var(--st-global-distance-space-inset-2xl)
+      var(--st-global-distance-space-inset-2xl);
 
     font-family: inherit;
 
-    @include font('label-sm');
+    @include font('body-md');
 
-    color: var(--st-content-foreground-color-neutral-secondary);
+    color: var(--st-content-foreground-color-neutral-primary);
+    text-decoration: underline;
     background: none;
     border: none;
     cursor: pointer;
@@ -377,7 +374,7 @@ function onKeydown(event: KeyboardEvent) {
 
     font-family: inherit;
 
-    @include font('label-md');
+    @include font('label-lg');
 
     color: var(--st-action-foreground-color-positive-normal);
     background-color: var(--st-action-background-color-positive-subtle-normal);
