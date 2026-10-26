@@ -53,7 +53,9 @@ const filters = computed<{ id: FilterId; label: string }[]>(() => [
   { id: 'pickup', label: t('concept.delivery.pickup.action') },
 ])
 
-const activeFilter = ref<FilterId>('all')
+// Книга открывается на вкладке активного способа: из самовывоза — самовывоз,
+// из курьера — курьер. Окно создаётся заново при каждом открытии.
+const activeFilter = ref<FilterId>(props.method)
 const search = ref('')
 
 function matches(entry: DeliveryProfile) {
