@@ -185,15 +185,16 @@ const selectedExtras = computed(() =>
   composeAddressExtras(country.value, selectedEntry.value?.fields, t),
 )
 
-const selectedContact = computed(() => {
-  const entry = selectedEntry.value
+/**
+ * Адрес в макете — один абзац: улица, город, индекс и уточнения идут подряд
+ * и переносятся по ширине, отдельных строк под них нет.
+ */
+const addressText = computed(() =>
+  [joinAddressCard(addressCard.value), selectedExtras.value].filter(Boolean).join(', '),
+)
 
-  if (!entry) {
-    return ''
-  }
-
-  return [entry.name, entry.phone].filter(Boolean).join(', ')
-})
+// Под адресом только имя получателя: телефон в макете не показан.
+const selectedContact = computed(() => selectedEntry.value?.name ?? '')
 
 /** Попап пункта самовывоза получает editProfile, только если это его профиль. */
 const pickupEditProfile = computed(() =>
@@ -355,13 +356,7 @@ function onPickupDelete(id: string) {
         </button>
       </div>
 
-      <div class="cc3-combined-delivery__info">
-        <p class="cc3-combined-delivery__address">{{ addressCard.street }}</p>
-        <p v-if="addressCard.locality" class="cc3-combined-delivery__address">
-          {{ addressCard.locality }}
-        </p>
-        <p v-if="selectedExtras" class="cc3-combined-delivery__extras">{{ selectedExtras }}</p>
-      </div>
+      <p class="cc3-combined-delivery__address">{{ addressText }}</p>
 
       <p v-if="isPriceVisible" class="cc3-combined-delivery__price">
         {{ selectedEntry.priceLabel }}
@@ -440,26 +435,13 @@ function onPickupDelete(id: string) {
     transform: translateX(var(--st-global-distance-space-inset-md));
   }
 
-  &__info {
-    padding: 0 var(--st-global-distance-space-inset-2xl);
-  }
-
   &__address {
     margin: 0;
+    padding: var(--st-global-distance-space-inset-md) var(--st-global-distance-space-inset-2xl) 0;
 
     @include font('body-md');
 
     color: var(--st-content-foreground-color-neutral-primary);
-  }
-
-  // Уточнения адреса тише самой улицы: это подробности для курьера, а не то,
-  // по чему человек узнаёт карточку.
-  &__extras {
-    margin: var(--st-global-distance-space-inset-xs) 0 0;
-
-    @include font('body-sm');
-
-    color: var(--st-content-foreground-color-neutral-secondary);
   }
 
   &__price {
@@ -493,15 +475,14 @@ function onPickupDelete(id: string) {
     color: var(--st-content-foreground-color-neutral-secondary);
   }
 
+  // Имя получателя — зелёным, как в макете, и без жирного.
   &__name {
     margin: 0;
-    padding: var(--st-global-distance-space-inset-md) var(--st-global-distance-space-inset-2xl)
-      var(--st-global-distance-space-inset-2xl);
+    padding: 0 var(--st-global-distance-space-inset-2xl);
 
     @include font('body-md');
-    font-weight: 700;
 
-    color: var(--st-content-foreground-color-neutral-primary);
+    color: var(--st-content-foreground-color-positive-primary);
   }
 }
 </style>
