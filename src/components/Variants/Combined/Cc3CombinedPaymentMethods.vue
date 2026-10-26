@@ -65,9 +65,7 @@ watch(methods, (list) => {
     <div class="cc3-combined-payment__list">
       <label v-for="method in methods" :key="method.id" class="cc3-combined-payment__row">
         <span class="cc3-combined-payment__method">
-          <span class="cc3-combined-payment__icon-box">
-            <img :src="method.icon" alt="" class="cc3-combined-payment__icon" />
-          </span>
+          <img :src="method.icon" alt="" class="cc3-combined-payment__icon" />
 
           <span class="cc3-combined-payment__name">{{ method.name }}</span>
         </span>
@@ -120,22 +118,16 @@ watch(methods, (list) => {
     gap: var(--st-global-distance-space-inline-md);
   }
 
-  &__icon-box {
-    display: flex;
-    align-items: center;
-    justify-content: center;
+  // У логотипов своя круглая подложка внутри самого файла: вторая вокруг
+  // них давала лишнюю серую обводку.
+  &__icon {
     flex-shrink: 0;
 
     width: 40px;
     height: 40px;
 
-    background-color: var(--st-content-background-color-neutral-onsubtle);
     border-radius: var(--st-global-radius-pill);
-  }
-
-  &__icon {
-    max-width: 24px;
-    max-height: 24px;
+    object-fit: cover;
   }
 
   &__name {
