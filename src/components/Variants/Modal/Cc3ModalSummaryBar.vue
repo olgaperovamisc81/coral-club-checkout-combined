@@ -37,10 +37,7 @@ onBeforeUnmount(resetSticky)
 </script>
 
 <template>
-  <div
-    class="cc3-modal-summary-bar"
-    :class="{ 'cc3-modal-summary-bar--sticky': isSticky }"
-  >
+  <div class="cc3-modal-summary-bar" :class="{ 'cc3-modal-summary-bar--sticky': isSticky }">
     <button ref="headRef" type="button" class="cc3-modal-summary-bar__head" @click="toggle">
       <span class="cc3-modal-summary-bar__label">
         {{ text.title }}
@@ -54,15 +51,15 @@ onBeforeUnmount(resetSticky)
 
       <span class="cc3-modal-summary-bar__total">{{ summary.totalFormatRounded }}</span>
     </button>
+  </div>
 
-    <!--
-      Панель прокручивается сама, если не помещается в экран: на телефоне
-      раскрытая сводка с миниатюрами и промокодом выше оставшейся высоты,
-      и без этого до поля промокода не дотянуться.
-    -->
-    <div v-if="isExpanded" class="cc3-modal-summary-bar__panel">
-      <Cc3ModalOrderSummaryBody compact />
-    </div>
+  <!--
+    Раскрытая сводка стоит отдельно от прилипающей полосы, в обычном потоке
+    страницы: она раздвигает содержимое и уезжает вверх вместе с ним, а не
+    висит поверх. Полоса с суммой при этом остаётся у верха экрана.
+  -->
+  <div v-if="isExpanded" class="cc3-modal-summary-bar__panel">
+    <Cc3ModalOrderSummaryBody compact />
   </div>
 </template>
 
@@ -120,13 +117,11 @@ onBeforeUnmount(resetSticky)
   }
 
   &__panel {
-    overflow-y: auto;
-    max-height: calc(100dvh - 120px);
-
-    // Серая подложка по макету, но непрозрачная: токен surface полупрозрачный,
-    // а панель лежит поверх страницы и пропустила бы её содержимое. Белая
-    // основа под ним даёт тот же серый и ничего не показывает. Тени нет —
-    // панель отделяет линия снизу.
+    // Серая подложка по макету. Панель в потоке страницы и под полосой
+    // уезжает вверх вместе с содержимым, поэтому подложка должна быть
+    // непрозрачной: токен surface полупрозрачный и пропустил бы страницу.
+    // Белая основа под ним даёт тот же серый. Тени нет — панель отделяет
+    // линия снизу.
     background-color: var(--st-content-background-color-default-solid-normal);
     background-image: linear-gradient(
       var(--st-content-background-color-neutral-surface),
