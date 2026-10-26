@@ -40,6 +40,10 @@ export default {
   'variant.modal.hint': 'Concept A — the address is added in a separate window',
   'variant.inline.title': 'Inline',
   'variant.inline.hint': 'Concept B — the address is on the page, the delivery option follows as its own block',
+  'variant.combined.title': 'Combined',
+  'variant.combined.hint': 'Concept C — inline form, map and address book in popups',
+  'combined.addressRequired': 'Please add a delivery address first',
+  'combined.editAddress': 'Edit address',
 
   // Delivery and pickup points
   'delivery.method.courier': 'Courier',

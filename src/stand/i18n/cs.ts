@@ -40,6 +40,10 @@ export default {
   'variant.modal.hint': 'Koncept A — adresa se přidává v samostatném okně',
   'variant.inline.title': 'Inline',
   'variant.inline.hint': 'Koncept B — adresa na stránce, způsob doručení samostatným blokem po ní',
+  'variant.combined.title': 'Kombinovaný',
+  'variant.combined.hint': 'Koncept C — formulář na stránce, mapa a adresář v oknech',
+  'combined.addressRequired': 'Nejprve přidejte doručovací adresu',
+  'combined.editAddress': 'Upravit adresu',
 
   // Doručení a výdejní místa
   'delivery.method.courier': 'Kurýr',

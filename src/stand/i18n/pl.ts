@@ -40,6 +40,10 @@ export default {
   'variant.modal.hint': 'Koncept A — adres dodawany w osobnym oknie',
   'variant.inline.title': 'Inline',
   'variant.inline.hint': 'Koncept B — adres na stronie, sposób dostawy osobnym blokiem po nim',
+  'variant.combined.title': 'Połączony',
+  'variant.combined.hint': 'Koncepcja C — formularz na stronie, mapa i książka adresowa w oknach',
+  'combined.addressRequired': 'Najpierw dodaj adres dostawy',
+  'combined.editAddress': 'Edytuj adres',
 
   // Dostawa i punkty odbioru
   'delivery.method.courier': 'Kurier',

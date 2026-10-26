@@ -20,9 +20,9 @@ import { isLocale, translate } from '../i18n'
  * Одна полная ссылка задаёт конфигурацию целиком: модератор отправляет её
  * респонденту и ничего не переключает руками.
  */
-export type StandVariant = 'prod' | 'modal' | 'inline'
+export type StandVariant = 'prod' | 'modal' | 'inline' | 'combined'
 
-export const standVariants: StandVariant[] = ['prod', 'modal', 'inline']
+export const standVariants: StandVariant[] = ['prod', 'modal', 'inline', 'combined']
 
 /**
  * Шаг с профилем стоит между страной и типом пользователя и занимает
@@ -198,6 +198,7 @@ export function useStand() {
 
   const isModal = computed(() => variant.value === 'modal')
   const isInline = computed(() => variant.value === 'inline')
+  const isCombined = computed(() => variant.value === 'combined')
   const isProd = computed(() => variant.value === 'prod')
 
   /**
@@ -225,6 +226,7 @@ export function useStand() {
     isTestStep,
     isModal,
     isInline,
+    isCombined,
     isProd,
     isDebug,
     t,

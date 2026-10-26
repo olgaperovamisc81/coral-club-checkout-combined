@@ -1,0 +1,35 @@
+// Сгруппированный список выбора комбинированной версии.
+//
+// Один контейнер с рамкой, внутри строки, разделённые линиями; выбранная
+// строка подсвечена фоном, радио стоит справа. Так нарисованы способ
+// доставки, способ оплаты и адресная книга — они читаются как один набор
+// элементов, а не как три разных. Выбранную строку находит :has(:checked),
+// поэтому классов состояния в разметке нет.
+@mixin cc3-combined-choice-list {
+  display: flex;
+  flex-direction: column;
+
+  background-color: var(--st-content-background-color-default-solid-normal);
+  border: 1px solid var(--st-content-border-color-neutral-implicit);
+  border-radius: var(--st-global-radius-md);
+  overflow: hidden;
+}
+
+@mixin cc3-combined-choice-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--st-global-distance-space-inset-xl);
+
+  padding: var(--st-global-distance-space-inset-xl) var(--st-global-distance-space-inset-2xl);
+
+  cursor: pointer;
+
+  & + & {
+    border-top: 1px solid var(--st-content-border-color-neutral-implicit);
+  }
+
+  &:has(:checked) {
+    background-color: var(--st-content-background-color-neutral-subtle);
+  }
+}

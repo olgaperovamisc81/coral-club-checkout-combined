@@ -40,6 +40,10 @@ export default {
   'variant.modal.hint': 'Концепт A — адрес добавляется в отдельном окне',
   'variant.inline.title': 'Инлайн',
   'variant.inline.hint': 'Концепт B — адрес на странице, способ доставки отдельным блоком после него',
+  'variant.combined.title': 'Комбинированный',
+  'variant.combined.hint': 'Концепт C — инлайн-форма, адрес на карте и книга адресов в окнах',
+  'combined.addressRequired': 'Необходимо добавить адрес доставки',
+  'combined.editAddress': 'Изменить адрес',
 
   // Доставка и пункты выдачи
   'delivery.method.courier': 'Курьер',

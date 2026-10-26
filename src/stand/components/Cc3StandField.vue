@@ -33,7 +33,7 @@
       :name="field.key"
       :autocomplete="field.autocomplete"
     >
-      <option value="" disabled>{{ field.placeholder }}</option>
+      <option value="" disabled>{{ selectPlaceholder }}</option>
       <option v-for="option in options" :key="option.value" :value="option.value">
         {{ option.label }}
       </option>
@@ -118,6 +118,12 @@ const props = defineProps<{
   invalid?: boolean
   /** Текст ошибки под полем. Без него подсветка остаётся без объяснения. */
   error?: string
+  /**
+   * Подпись лежит внутри поля и уходит наверх, когда в поле фокус или
+   * значение. Нужна комбинированной версии; у остальных подпись над полем.
+   * Рамка и радиус остаются как у обычного поля.
+   */
+  floating?: boolean
 }>()
 
 const emit = defineEmits<{ select: [suggestion: AddressSuggestion] }>()
@@ -133,6 +139,18 @@ const activeIndex = ref(-1)
 const fieldId = computed(() => `stand-field-${props.field.key}`)
 
 const isSuggest = computed(() => props.field.type === 'autocomplete')
+
+// Плавающая подпись есть только у однострочных полей. У чипсов и
+// многострочного текста подпись остаётся над полем: внутри ей нет места.
+const isFloating = computed(
+  () => Boolean(props.floating) && !['chips', 'textarea'].includes(props.field.type),
+)
+
+const isFilled = computed(() => value.value !== '')
+
+// В плавающем поле подсказка стоит внутри селекта вместо подписи — иначе
+// два текста наложились бы друг на друга.
+const selectPlaceholder = computed(() => (isFloating.value ? '' : props.field.placeholder))
 
 const isListOpen = computed(
   () => isSuggest.value && isFocused.value && (items.value.length > 0 || status.value !== 'idle'),
@@ -256,6 +274,10 @@ function onKeydown(event: KeyboardEvent) {
 }
 
 const modifiers = computed(() => ({
+  'cc3-stand-field--floating': isFloating.value,
+  'cc3-stand-field--lifted':
+    isFloating.value && (isFocused.value || isFilled.value || props.field.type === 'select'),
+  'cc3-stand-field--focused': isFocused.value,
   'cc3-stand-field--invalid': props.invalid,
   'cc3-stand-field--autofilled': props.field.autofilled,
   'cc3-stand-field--prefilled': props.field.prefilled,
@@ -363,6 +385,75 @@ const modifiers = computed(() => ({
   &--invalid &__select,
   &--invalid &__textarea {
     border-color: var(--st-content-foreground-color-negative-primary);
+  }
+
+  // ── Подпись внутри поля ────────────────────────────────────────────────
+  // Подпись и поле стоят в одной ячейке сетки, а не накладываются через
+  // position: absolute. Опущенная подпись стоит по центру поля, поднятая —
+  // у верхнего края, а текст поля опускается ниже, освобождая ей место.
+  &--floating {
+    display: grid;
+    grid-template-columns: 100%;
+    gap: 0;
+  }
+
+  &--floating &__label {
+    grid-area: 1 / 1;
+    align-self: start;
+
+    // 2px рамки и внутренний отступ поля: подпись начинается там же, где
+    // потом начнётся введённый текст.
+    margin-inline-start: calc(var(--st-global-distance-space-inset-md) + 2px);
+
+    @include font('body-md');
+
+    color: var(--st-content-foreground-color-neutral-tetriary);
+    pointer-events: none;
+    transform: translateY(16px);
+    transition:
+      transform 0.15s ease,
+      font-size 0.15s ease,
+      line-height 0.15s ease;
+    z-index: 1;
+  }
+
+  &--floating#{&}--lifted &__label {
+    @include font('label-xs');
+
+    color: var(--st-content-foreground-color-neutral-secondary);
+    transform: translateY(6px);
+  }
+
+  &--floating .cc3-input-field {
+    grid-area: 1 / 1;
+
+    height: 52px;
+    padding-top: 18px;
+  }
+
+  &--floating &__select,
+  &--floating &__textarea {
+    grid-area: 1 / 1;
+
+    height: 52px;
+    padding-top: 18px;
+  }
+
+  // Подсказка-образец («+7 ___») мешала бы опущенной подписи: она
+  // проявляется только вместе с подписью, когда та уже поднялась.
+  &--floating:not(#{&}--lifted) .cc3-input-field__input::placeholder {
+    color: transparent;
+  }
+
+  &--floating &__hint {
+    grid-area: 2 / 1;
+
+    margin-block-start: var(--st-global-distance-space-inset-sm);
+  }
+
+  &--floating .cc3-stand-field-suggest {
+    // Список считает от низа поля, а оно теперь не последнее в сетке.
+    inset-block-start: 52px;
   }
 }
 </style>

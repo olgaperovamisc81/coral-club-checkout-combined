@@ -40,6 +40,10 @@ export default {
   'variant.modal.hint': 'Konzept A — die Adresse wird in einem separaten Fenster hinzugefügt',
   'variant.inline.title': 'Inline',
   'variant.inline.hint': 'Konzept B — die Adresse steht auf der Seite, die Versandart folgt als eigener Block',
+  'variant.combined.title': 'Kombiniert',
+  'variant.combined.hint': 'Konzept C — Inline-Formular, Karte und Adressbuch in Fenstern',
+  'combined.addressRequired': 'Bitte zuerst eine Lieferadresse hinzufügen',
+  'combined.editAddress': 'Adresse bearbeiten',
 
   // Lieferung und Abholstellen
   'delivery.method.courier': 'Kurier',
