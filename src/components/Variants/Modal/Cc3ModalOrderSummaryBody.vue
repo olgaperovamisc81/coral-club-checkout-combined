@@ -12,6 +12,14 @@ import { useStand } from '@/stand/composables/useStand'
  * Вид в обоих местах обязан совпадать — это одна и та же сводка, и две
  * слегка разные её версии человек прочитает как два разных заказа.
  */
+defineProps<{
+  /**
+   * Плотная раскладка раскрытой панели под шапкой: в макете у неё строки
+   * стоят ближе, чем у блока в конце страницы.
+   */
+  compact?: boolean
+}>()
+
 const { t } = useStand()
 const { summary, orderProductsPreview, promoCode } = useCheckout()
 
@@ -29,7 +37,10 @@ const text = computed(() => ({
 </script>
 
 <template>
-  <div class="cc3-modal-order-summary-body">
+  <div
+    class="cc3-modal-order-summary-body"
+    :class="{ 'cc3-modal-order-summary-body--compact': compact }"
+  >
     <!--
       Раньше превью было кнопкой со стрелкой «раскрыть список товаров», но
       обработчика у неё не было: человек жал и ничего не происходило. Состав
@@ -106,6 +117,30 @@ const text = computed(() => ({
 
 <style lang="scss">
 .cc3-modal-order-summary-body {
+  // Плотная раскладка по макету панели: миниатюры ниже края шапки, строки
+  // через 8px, промокод отодвинут от итога.
+  &--compact {
+    .cc3-modal-order-summary-body__preview {
+      padding: calc(var(--st-global-distance-space-inset-2xl) + var(--st-global-distance-space-inset-md))
+        var(--st-global-distance-space-inset-2xl) var(--st-global-distance-space-inset-md);
+    }
+
+    .cc3-modal-order-summary-body__count {
+      padding-bottom: var(--st-global-distance-space-inset-lg);
+    }
+
+    .cc3-modal-order-summary-body__rows {
+      gap: var(--st-global-distance-space-inset-md);
+
+      padding-bottom: var(--st-global-distance-space-inset-lg);
+    }
+
+    .cc3-modal-order-summary-body__promo {
+      padding-top: var(--st-global-distance-space-inset-2xl);
+      padding-bottom: calc(var(--st-global-distance-space-inset-2xl) + var(--st-global-distance-space-inset-lg));
+    }
+  }
+
   &__preview {
     display: flex;
     align-items: center;

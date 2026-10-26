@@ -61,7 +61,7 @@ onBeforeUnmount(resetSticky)
       и без этого до поля промокода не дотянуться.
     -->
     <div v-if="isExpanded" class="cc3-modal-summary-bar__panel">
-      <Cc3ModalOrderSummaryBody />
+      <Cc3ModalOrderSummaryBody compact />
     </div>
   </div>
 </template>
@@ -123,9 +123,16 @@ onBeforeUnmount(resetSticky)
     overflow-y: auto;
     max-height: calc(100dvh - 120px);
 
+    // Серая подложка по макету, но непрозрачная: токен surface полупрозрачный,
+    // а панель лежит поверх страницы и пропустила бы её содержимое. Белая
+    // основа под ним даёт тот же серый и ничего не показывает. Тени нет —
+    // панель отделяет линия снизу.
     background-color: var(--st-content-background-color-default-solid-normal);
-    border-top: 1px solid var(--st-content-border-color-neutral-implicit);
-    box-shadow: 0 8px 16px 0 rgb(4 51 103 / 11%);
+    background-image: linear-gradient(
+      var(--st-content-background-color-neutral-surface),
+      var(--st-content-background-color-neutral-surface)
+    );
+    border-bottom: 1px solid var(--st-content-border-color-neutral-implicit);
   }
 }
 </style>
