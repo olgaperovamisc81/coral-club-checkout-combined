@@ -108,15 +108,16 @@ onBeforeUnmount(resetSticky)
   }
 
   &__panel {
-    // Серая подложка по макету. Панель в потоке страницы и под полосой
-    // уезжает вверх вместе с содержимым, поэтому подложка должна быть
-    // непрозрачной: токен surface полупрозрачный и пропустил бы страницу.
-    // Белая основа под ним даёт тот же серый. Тени нет — панель отделяет
-    // линия снизу.
+    // Серая подложка, как у самой полосы: панель и полоса читаются одним
+    // блоком, а от белой страницы отличаются. Токен surface из макета (4%)
+    // на экране почти не виден. Подложка непрозрачная: панель уезжает под
+    // полосу и содержимое, а токен полупрозрачный — белая основа под ним даёт
+    // тот же серый и ничего не пропускает. Тени нет — панель отделяет линия
+    // снизу.
     background-color: var(--st-content-background-color-default-solid-normal);
     background-image: linear-gradient(
-      var(--st-content-background-color-neutral-surface),
-      var(--st-content-background-color-neutral-surface)
+      var(--st-content-background-color-neutral-disable),
+      var(--st-content-background-color-neutral-disable)
     );
     border-bottom: 1px solid var(--st-content-border-color-neutral-implicit);
   }
