@@ -189,13 +189,13 @@ function onKeydown(event: KeyboardEvent) {
             </div>
           </template>
         </div>
-      </div>
 
-      <div class="cc3-combined-address-book__footer">
-        <button type="button" class="cc3-combined-address-book__add" @click="emit('add', activeMethod)">
-          <Cc3Icon name="plus-md" :size="24" />
-          {{ addLabel }}
-        </button>
+        <div class="cc3-combined-address-book__footer">
+          <button type="button" class="cc3-combined-address-book__add" @click="emit('add', activeMethod)">
+            <Cc3Icon name="plus-md" :size="24" />
+            {{ addLabel }}
+          </button>
+        </div>
       </div>
     </div>
   </Teleport>
@@ -374,8 +374,17 @@ function onKeydown(event: KeyboardEvent) {
     cursor: pointer;
   }
 
+  // Кнопка лежит в прокручиваемом теле сразу под списком или информером: в
+  // короткой книге она стоит на 16px ниже содержимого, а в длинной прилипает
+  // к низу окна и видна всегда. Фон закрывает строки, уходящие под неё.
   &__footer {
-    padding: var(--st-global-distance-space-inset-2xl);
+    position: sticky;
+    inset-block-end: 0;
+    z-index: 1;
+
+    padding: var(--st-global-distance-space-inset-2xl) 0;
+
+    background-color: var(--st-content-background-color-default-solid-normal);
   }
 
   &__add {
