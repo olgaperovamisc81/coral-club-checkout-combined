@@ -172,6 +172,13 @@ const hint = computed(() => {
     return props.error
   }
 
+  // В комбинированной версии (плавающая подпись) пояснения «Заполнено из
+  // подсказки» нет: поле и так выглядит заполненным, а текст под ним
+  // удлиняет форму. Текст ошибки показывается и здесь — он выше.
+  if (isFloating.value) {
+    return ''
+  }
+
   return props.field.autofilled ? t('field.autofilled.hint') : ''
 })
 
