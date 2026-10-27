@@ -439,6 +439,14 @@ const modifiers = computed(() => ({
     padding-top: 18px;
   }
 
+  // У нативного select текст стоит на 4px правее, чем у input с тем же
+  // отступом: браузер добавляет свой внутренний. Без поправки значение
+  // «New York» оказывалось правее подписи «State», а у остальных полей они
+  // начинаются на одной линии.
+  &--floating &__select {
+    padding-inline-start: calc(var(--st-global-distance-space-inset-md) - 4px);
+  }
+
   // Подсказка-образец («+7 ___») мешала бы опущенной подписи: она
   // проявляется только вместе с подписью, когда та уже поднялась.
   &--floating:not(#{&}--lifted) .cc3-input-field__input::placeholder {
