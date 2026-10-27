@@ -283,8 +283,10 @@ function onKeydown(event: KeyboardEvent) {
 
 const modifiers = computed(() => ({
   'cc3-stand-field--floating': isFloating.value,
-  'cc3-stand-field--lifted':
-    isFloating.value && (isFocused.value || isFilled.value || props.field.type === 'select'),
+  // Подпись поднимается, когда в поле фокус или значение — и у select так же:
+  // пока штат не выбран, «State» стоит в поле как подсказка, а не висит над
+  // пустым местом.
+  'cc3-stand-field--lifted': isFloating.value && (isFocused.value || isFilled.value),
   'cc3-stand-field--focused': isFocused.value,
   'cc3-stand-field--invalid': props.invalid,
   'cc3-stand-field--autofilled': props.field.autofilled,
