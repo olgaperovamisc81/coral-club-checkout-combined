@@ -55,6 +55,7 @@ export default {
   'combined.bookEmptyPickup': 'You don\'t have any saved addresses yet. Add a pickup point.',
   'combined.homeDelivery': 'Home delivery',
   'combined.shipTo': 'Ship to',
+  'combined.bookTitle': 'Saved addresses',
 
   // Delivery and pickup points
   'delivery.method.courier': 'Courier',

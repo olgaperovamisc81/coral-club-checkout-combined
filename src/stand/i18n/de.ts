@@ -55,6 +55,7 @@ export default {
   'combined.bookEmptyPickup': 'Sie haben noch keine gespeicherten Adressen. Fügen Sie einen Abholpunkt hinzu.',
   'combined.homeDelivery': 'Lieferung nach Hause',
   'combined.shipTo': 'Lieferung an',
+  'combined.bookTitle': 'Gespeicherte Adressen',
 
   // Lieferung und Abholstellen
   'delivery.method.courier': 'Kurier',

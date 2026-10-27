@@ -55,6 +55,7 @@ export default {
   'combined.bookEmptyPickup': 'Zatím nemáte žádné uložené adresy. Přidejte výdejní místo.',
   'combined.homeDelivery': 'Doručení domů',
   'combined.shipTo': 'Doručit na',
+  'combined.bookTitle': 'Uložené adresy',
 
   // Doručení a výdejní místa
   'delivery.method.courier': 'Kurýr',

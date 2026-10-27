@@ -40,7 +40,7 @@ const emit = defineEmits<{
 const { t } = useStand()
 
 const text = computed(() => ({
-  title: t('addressBook.title'),
+  title: t('combined.bookTitle'),
   close: t('common.close'),
   search: t('common.searchByNameAddress'),
   edit: t('combined.editAddress'),

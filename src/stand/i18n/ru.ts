@@ -55,6 +55,7 @@ export default {
   'combined.bookEmptyPickup': 'У вас пока нет сохранённых адресов. Добавьте пункт самовывоза.',
   'combined.homeDelivery': 'Доставка на дом',
   'combined.shipTo': 'Куда доставить',
+  'combined.bookTitle': 'Сохранённые адреса',
 
   // Доставка и пункты выдачи
   'delivery.method.courier': 'Курьер',

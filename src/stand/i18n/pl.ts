@@ -55,6 +55,7 @@ export default {
   'combined.bookEmptyPickup': 'Nie masz jeszcze zapisanych adresów. Dodaj punkt odbioru.',
   'combined.homeDelivery': 'Dostawa do domu',
   'combined.shipTo': 'Dostawa na adres',
+  'combined.bookTitle': 'Zapisane adresy',
 
   // Dostawa i punkty odbioru
   'delivery.method.courier': 'Kurier',
