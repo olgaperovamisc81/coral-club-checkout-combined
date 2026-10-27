@@ -89,8 +89,14 @@ const userOptions = computed(() =>
   })),
 )
 
+// Сборка для показа может оставить в списке одну версию: VITE_ONLY_VARIANT
+// задаёт её при сборке (см. выкладку отдельного репозитория). Без переменной —
+// все версии, как на тестовом стенде и в локальной разработке.
+const onlyVariant: string = import.meta.env.VITE_ONLY_VARIANT ?? ''
+const visibleVariants = standVariants.filter((variant) => !onlyVariant || variant === onlyVariant)
+
 const variantOptions = computed(() =>
-  standVariants.map((variant) => ({
+  visibleVariants.map((variant) => ({
     key: variant,
     title: t(`variant.${variant}.title`),
     hint: t(`variant.${variant}.hint`),
@@ -110,7 +116,11 @@ const isProfileStep = computed(() => step.value === 'profile')
 const standTitle = computed(() => t('stand.title'))
 const backLabel = computed(() => t('stand.back'))
 const title = computed(() => t(`stand.${step.value}.title`))
-const hint = computed(() => t(`stand.${step.value}.hint`))
+// «Три версии на одних данных» при одной версии в списке не про неё: подсказку
+// на этом шаге не показываем.
+const hint = computed(() =>
+  step.value === 'variant' && visibleVariants.length === 1 ? '' : t(`stand.${step.value}.hint`),
+)
 const backHref = computed(() => {
   if (step.value === 'profile') return routeHref()
   if (step.value === 'user') return profileHref(country.value)
@@ -149,7 +159,7 @@ function onProfileSubmit() {
       </ol>
 
       <h1 class="cc3-prototype-index__title">{{ title }}</h1>
-      <p class="cc3-prototype-index__hint">{{ hint }}</p>
+      <p v-if="hint" class="cc3-prototype-index__hint">{{ hint }}</p>
     </header>
 
     <Cc3StandProfileForm v-if="isProfileStep" @submit="onProfileSubmit" />

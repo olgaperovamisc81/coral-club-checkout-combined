@@ -34,6 +34,11 @@ jobs:
         env:
           VITE_DADATA_TOKEN: ${{ secrets.DADATA_TOKEN }}
           VITE_GEOAPIFY_TOKEN: ${{ secrets.GEOAPIFY_TOKEN }}
+          # В отдельном репозитории для показа в списке версий остаётся только
+          # Комбинированный. Условие по имени репозитория, а не по ветке: тот же
+          # файл лежит в основном репозитории, и там список должен остаться
+          # полным, чтобы тест не потерял версии.
+          VITE_ONLY_VARIANT: ${{ github.repository == 'olgaperovamisc81/coral-club-checkout-combined' && 'combined' || '' }}
 
       - uses: actions/upload-pages-artifact@v3
         with:
