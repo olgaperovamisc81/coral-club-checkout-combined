@@ -51,6 +51,7 @@ export default {
   'combined.editPickupTitle': 'Edit pickup point',
   'combined.addTitle': 'New delivery address',
   'combined.cancel': 'Cancel',
+  'combined.bookEmpty': 'You don\'t have any saved addresses yet. Add a new address.',
 
   // Delivery and pickup points
   'delivery.method.courier': 'Courier',

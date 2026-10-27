@@ -51,6 +51,7 @@ export default {
   'combined.editPickupTitle': 'Редактирование пункта самовывоза',
   'combined.addTitle': 'Новый адрес доставки',
   'combined.cancel': 'Отменить',
+  'combined.bookEmpty': 'У вас пока нет сохранённых адресов. Добавьте новый адрес.',
 
   // Доставка и пункты выдачи
   'delivery.method.courier': 'Курьер',

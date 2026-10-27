@@ -46,6 +46,7 @@ const text = computed(() => ({
   edit: t('combined.editAddress'),
   addCourier: t('delivery.addAddress'),
   addPickup: t('combined.addPickup'),
+  empty: t('combined.bookEmpty'),
 }))
 
 const methodTabs = computed(() => ({
@@ -60,6 +61,12 @@ const search = ref('')
 
 const addLabel = computed(() =>
   activeMethod.value === 'pickup' ? text.value.addPickup : text.value.addCourier,
+)
+
+// У способа нет ни одного сохранённого адреса — не «ничего не найдено», а
+// пустая книга: человеку нужно подсказать, что делать.
+const isMethodEmpty = computed(
+  () => !props.entries.some((entry) => entry.method === activeMethod.value),
 )
 
 function matchesQuery(entry: DeliveryProfile) {
@@ -145,7 +152,9 @@ function onKeydown(event: KeyboardEvent) {
       </div>
 
       <div class="cc3-combined-address-book__body">
-        <div class="cc3-combined-address-book__list">
+        <p v-if="isMethodEmpty" class="cc3-combined-address-book__empty">{{ text.empty }}</p>
+
+        <div v-else class="cc3-combined-address-book__list">
           <template v-for="entry in entries" :key="entry.id">
             <div v-if="matches(entry)" class="cc3-combined-address-book__row">
               <label class="cc3-combined-address-book__select">
@@ -178,7 +187,12 @@ function onKeydown(event: KeyboardEvent) {
       </div>
 
       <div class="cc3-combined-address-book__footer">
-        <button type="button" class="cc3-combined-address-book__add" @click="emit('add', activeMethod)">
+        <button
+          type="button"
+          class="cc3-combined-address-book__add"
+          :class="{ 'cc3-combined-address-book__add--primary': isMethodEmpty }"
+          @click="emit('add', activeMethod)"
+        >
           <Cc3Icon name="plus-md" :size="24" />
           {{ addLabel }}
         </button>
@@ -266,6 +280,18 @@ function onKeydown(event: KeyboardEvent) {
 
   &__list {
     @include cc3-combined-choice-list;
+  }
+
+  // Информер пустой книги: серая плашка, а не пустой контейнер с рамкой.
+  &__empty {
+    margin: 0;
+    padding: var(--st-global-distance-space-inset-2xl);
+
+    @include font('body-md');
+
+    color: var(--st-content-foreground-color-neutral-primary);
+    background-color: var(--st-content-background-color-neutral-subtle);
+    border-radius: var(--st-global-radius-md);
   }
 
   // Строка здесь — колонка: выбор и «Изменить адрес» друг под другом,
@@ -370,6 +396,13 @@ function onKeydown(event: KeyboardEvent) {
     border: none;
     border-radius: var(--st-global-radius-pill);
     cursor: pointer;
+
+    // Пустая книга: добавить адрес — единственное, что тут можно сделать,
+    // поэтому кнопка главная, а не тихая.
+    &--primary {
+      color: var(--st-action-foreground-color-onprimary-normal);
+      background-color: var(--st-action-background-color-positive-normal);
+    }
   }
 }
 </style>

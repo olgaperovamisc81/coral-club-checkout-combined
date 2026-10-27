@@ -51,6 +51,7 @@ export default {
   'combined.editPickupTitle': 'Edycja punktu odbioru',
   'combined.addTitle': 'Nowy adres dostawy',
   'combined.cancel': 'Anuluj',
+  'combined.bookEmpty': 'Nie masz jeszcze zapisanych adresów. Dodaj nowy adres.',
 
   // Dostawa i punkty odbioru
   'delivery.method.courier': 'Kurier',
