@@ -50,7 +50,7 @@ const text = computed(() => ({
 }))
 
 const methodTabs = computed(() => ({
-  courier: t('concept.delivery.courier.title'),
+  courier: t('combined.homeDelivery'),
   pickup: t('concept.delivery.pickup.action'),
 }))
 

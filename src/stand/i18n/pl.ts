@@ -52,6 +52,8 @@ export default {
   'combined.addTitle': 'Nowy adres dostawy',
   'combined.cancel': 'Anuluj',
   'combined.bookEmpty': 'Nie masz jeszcze zapisanych adresów. Dodaj nowy adres.',
+  'combined.homeDelivery': 'Dostawa do domu',
+  'combined.shipTo': 'Dostawa na adres',
 
   // Dostawa i punkty odbioru
   'delivery.method.courier': 'Kurier',

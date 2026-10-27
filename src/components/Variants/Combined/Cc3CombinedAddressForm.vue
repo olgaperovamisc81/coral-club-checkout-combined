@@ -39,7 +39,7 @@ const { courierVariants } = useCourierVariants()
 const { recipientValues } = useStandProfile()
 
 const text = computed(() => ({
-  addressSection: t('address.title'),
+  addressSection: t('combined.shipTo'),
   recipientSection: t('group.recipient.title'),
   pickOnMap: t('address.mapShow'),
 }))

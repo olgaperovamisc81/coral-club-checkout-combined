@@ -62,8 +62,8 @@ function toProfiles(): DeliveryProfile[] {
 
 const text = computed(() => ({
   change: t('common.change'),
-  addressTitle: t('address.title'),
-  courierTab: t('concept.delivery.courier.title'),
+  addressTitle: t('combined.shipTo'),
+  courierTab: t('combined.homeDelivery'),
   pickupTab: t('concept.delivery.pickup.action'),
   hours: t('pickup.hours'),
   hoursWeekday: t('pickup.hours.weekday'),

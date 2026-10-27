@@ -52,6 +52,8 @@ export default {
   'combined.addTitle': 'Новый адрес доставки',
   'combined.cancel': 'Отменить',
   'combined.bookEmpty': 'У вас пока нет сохранённых адресов. Добавьте новый адрес.',
+  'combined.homeDelivery': 'Доставка на дом',
+  'combined.shipTo': 'Куда доставить',
 
   // Доставка и пункты выдачи
   'delivery.method.courier': 'Курьер',

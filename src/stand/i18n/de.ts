@@ -52,6 +52,8 @@ export default {
   'combined.addTitle': 'Neue Lieferadresse',
   'combined.cancel': 'Abbrechen',
   'combined.bookEmpty': 'Sie haben noch keine gespeicherten Adressen. Fügen Sie eine neue Adresse hinzu.',
+  'combined.homeDelivery': 'Lieferung nach Hause',
+  'combined.shipTo': 'Lieferung an',
 
   // Lieferung und Abholstellen
   'delivery.method.courier': 'Kurier',

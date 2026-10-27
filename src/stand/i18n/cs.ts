@@ -52,6 +52,8 @@ export default {
   'combined.addTitle': 'Nová doručovací adresa',
   'combined.cancel': 'Zrušit',
   'combined.bookEmpty': 'Zatím nemáte žádné uložené adresy. Přidejte novou adresu.',
+  'combined.homeDelivery': 'Doručení domů',
+  'combined.shipTo': 'Doručit na',
 
   // Doručení a výdejní místa
   'delivery.method.courier': 'Kurýr',
