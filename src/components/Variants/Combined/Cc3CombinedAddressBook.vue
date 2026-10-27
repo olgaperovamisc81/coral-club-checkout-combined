@@ -187,12 +187,7 @@ function onKeydown(event: KeyboardEvent) {
       </div>
 
       <div class="cc3-combined-address-book__footer">
-        <button
-          type="button"
-          class="cc3-combined-address-book__add"
-          :class="{ 'cc3-combined-address-book__add--primary': isMethodEmpty }"
-          @click="emit('add', activeMethod)"
-        >
+        <button type="button" class="cc3-combined-address-book__add" @click="emit('add', activeMethod)">
           <Cc3Icon name="plus-md" :size="24" />
           {{ addLabel }}
         </button>
@@ -391,18 +386,11 @@ function onKeydown(event: KeyboardEvent) {
 
     @include font('label-lg');
 
-    color: var(--st-action-foreground-color-positive-normal);
-    background-color: var(--st-action-background-color-positive-subtle-normal);
+    color: var(--st-action-foreground-color-onprimary-normal);
+    background-color: var(--st-action-background-color-positive-normal);
     border: none;
     border-radius: var(--st-global-radius-pill);
     cursor: pointer;
-
-    // Пустая книга: добавить адрес — единственное, что тут можно сделать,
-    // поэтому кнопка главная, а не тихая.
-    &--primary {
-      color: var(--st-action-foreground-color-onprimary-normal);
-      background-color: var(--st-action-background-color-positive-normal);
-    }
   }
 }
 </style>
