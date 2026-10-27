@@ -46,7 +46,8 @@ const text = computed(() => ({
   edit: t('combined.editAddress'),
   addCourier: t('delivery.addAddress'),
   addPickup: t('combined.addPickup'),
-  empty: t('combined.bookEmpty'),
+  emptyCourier: t('combined.bookEmpty'),
+  emptyPickup: t('combined.bookEmptyPickup'),
 }))
 
 const methodTabs = computed(() => ({
@@ -65,6 +66,10 @@ const addLabel = computed(() =>
 
 // У способа нет ни одного сохранённого адреса — не «ничего не найдено», а
 // пустая книга: человеку нужно подсказать, что делать.
+const emptyText = computed(() =>
+  activeMethod.value === 'pickup' ? text.value.emptyPickup : text.value.emptyCourier,
+)
+
 const isMethodEmpty = computed(
   () => !props.entries.some((entry) => entry.method === activeMethod.value),
 )
@@ -152,7 +157,7 @@ function onKeydown(event: KeyboardEvent) {
       </div>
 
       <div class="cc3-combined-address-book__body">
-        <p v-if="isMethodEmpty" class="cc3-combined-address-book__empty">{{ text.empty }}</p>
+        <p v-if="isMethodEmpty" class="cc3-combined-address-book__empty">{{ emptyText }}</p>
 
         <div v-else class="cc3-combined-address-book__list">
           <template v-for="entry in entries" :key="entry.id">

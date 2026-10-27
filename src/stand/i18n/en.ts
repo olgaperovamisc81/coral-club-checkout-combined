@@ -52,6 +52,7 @@ export default {
   'combined.addTitle': 'New delivery address',
   'combined.cancel': 'Cancel',
   'combined.bookEmpty': 'You don\'t have any saved addresses yet. Add a new address.',
+  'combined.bookEmptyPickup': 'You don\'t have any saved addresses yet. Add a pickup point.',
   'combined.homeDelivery': 'Home delivery',
   'combined.shipTo': 'Ship to',
 
