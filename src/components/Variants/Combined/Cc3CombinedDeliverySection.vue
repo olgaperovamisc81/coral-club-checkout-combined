@@ -199,6 +199,25 @@ const addressText = computed(() =>
 // Под адресом только имя получателя: телефон в макете не показан.
 const selectedContact = computed(() => selectedEntry.value?.name ?? '')
 
+/**
+ * Строки карточки. У курьера первым стоит получатель, а потом адрес; у
+ * пункта самовывоза наоборот — там адрес пункта главнее, чем имя забирающего.
+ */
+const cardLines = computed(() => {
+  const name = {
+    key: 'name',
+    text: selectedContact.value,
+    className: 'cc3-combined-delivery__name',
+  }
+  const address = {
+    key: 'address',
+    text: addressText.value,
+    className: 'cc3-combined-delivery__address',
+  }
+
+  return selectedEntry.value?.method === 'courier' ? [name, address] : [address, name]
+})
+
 /** Попап пункта самовывоза получает editProfile, только если это его профиль. */
 const pickupEditProfile = computed(() =>
   editingEntry.value?.method === 'pickup' ? editingEntry.value : undefined,
@@ -383,9 +402,9 @@ function onEntryDelete(id: string) {
         </button>
       </div>
 
-      <p class="cc3-combined-delivery__address">{{ addressText }}</p>
-
-      <p class="cc3-combined-delivery__name">{{ selectedContact }}</p>
+      <div class="cc3-combined-delivery__lines">
+        <p v-for="line in cardLines" :key="line.key" :class="line.className">{{ line.text }}</p>
+      </div>
 
       <p v-if="isPriceVisible" class="cc3-combined-delivery__price">
         {{ selectedEntry.priceLabel }}
@@ -472,9 +491,18 @@ function onEntryDelete(id: string) {
     transform: translateX(var(--st-global-distance-space-inset-md));
   }
 
+  // Строки карточки стоят в общем контейнере: 8px под заголовком задаёт он, а
+  // не первая строка, потому что первой бывает и имя, и адрес.
+  &__lines {
+    display: flex;
+    flex-direction: column;
+
+    padding-top: var(--st-global-distance-space-inset-md);
+  }
+
   &__address {
     margin: 0;
-    padding: var(--st-global-distance-space-inset-md) var(--st-global-distance-space-inset-2xl) 0;
+    padding: 0 var(--st-global-distance-space-inset-2xl);
 
     @include font('body-md');
 
