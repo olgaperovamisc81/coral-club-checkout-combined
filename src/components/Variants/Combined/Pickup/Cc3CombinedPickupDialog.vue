@@ -46,7 +46,6 @@ const emit = defineEmits<{
 const {
   pickupPointsFormat,
   pickupProviders,
-  togglePickupProvider,
   pickupProviderLabels,
   mapCenter,
 } = useCheckout()
@@ -56,7 +55,6 @@ const { recipientValues: profileRecipient } = useStandProfile()
 const text = computed(() => ({
   title: props.editProfile ? t('combined.editPickupTitle') : t('pickup.title'),
   close: t('common.close'),
-  all: t('common.all'),
   bringHere: t('combined.bringHere'),
   continue: t('common.continue'),
   save: t('combined.saveChanges'),
@@ -103,23 +101,41 @@ const points = computed(() => {
 // Выбранный пункт, выпавший из списка после смены фильтра, больше не выбран.
 const activePoint = computed(() => points.value.find((point) => point.id === selectedId.value))
 
-const providerFilters = computed(() => [
-  { id: 'all', label: text.value.all, active: pickupProviders.value.length === 0 },
-  ...Object.entries(pickupProviderLabels.value).map(([id, label]) => ({
+/**
+ * Службы-фильтры. Чипса «Все» нет: изначально нажаты все службы, нажатие на
+ * чипс выключает его, а когда нажаты все — это и есть «все». Общее состояние
+ * хранит пустой список как «все службы», поэтому здесь он разворачивается в
+ * полный набор и сворачивается обратно.
+ */
+const allProviderIds = computed(() => Object.keys(pickupProviderLabels.value) as PickupProvider[])
+
+const selectedProviders = computed<PickupProvider[]>(() =>
+  pickupProviders.value.length === 0 ? allProviderIds.value : pickupProviders.value,
+)
+
+const providerFilters = computed(() =>
+  allProviderIds.value.map((id) => ({
     id,
-    label,
-    active: pickupProviders.value.includes(id as PickupProvider),
+    label: pickupProviderLabels.value[id],
+    active: selectedProviders.value.includes(id),
   })),
-])
+)
 
 function onFilter(id: string) {
-  if (id === 'all') {
-    pickupProviders.value = []
+  const provider = id as PickupProvider
+  const current = selectedProviders.value
 
+  // Последнюю включённую службу не выключить: пустая карта без объяснения
+  // читается как поломка.
+  if (current.length === 1 && current[0] === provider) {
     return
   }
 
-  togglePickupProvider(id as PickupProvider)
+  const next = current.includes(provider)
+    ? current.filter((item) => item !== provider)
+    : [...current, provider]
+
+  pickupProviders.value = next.length === allProviderIds.value.length ? [] : next
 }
 
 /** Срок и цена в одной строке — так их читают и в списке, и в шторке. */
