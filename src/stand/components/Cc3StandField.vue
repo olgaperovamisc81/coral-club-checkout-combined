@@ -39,6 +39,8 @@
       </option>
     </select>
 
+    <Cc3Icon v-if="hasChevron" name="chevron-down" :size="20" class="cc3-stand-field__chevron" />
+
     <textarea
       v-else-if="field.type === 'textarea'"
       :id="fieldId"
@@ -78,6 +80,7 @@
 import { computed, ref } from 'vue'
 
 import Cc3InputField from '@/components/Field/Cc3InputField.vue'
+import Cc3Icon from '@/components/Icon/Cc3Icon.vue'
 
 import type { StandField } from '../config/types'
 import type { AddressSuggestion } from '../suggest/types'
@@ -147,6 +150,11 @@ const isFloating = computed(
 )
 
 const isFilled = computed(() => value.value !== '')
+
+// В плавающем поле нативная стрелка select убрана (см. стили) — её рисует
+// своя иконка: у нативной внутренний отступ текста в каждом браузере свой, и
+// значение не совпадало бы с подписью по левому краю.
+const hasChevron = computed(() => isFloating.value && props.field.type === 'select')
 
 // В плавающем поле подсказка стоит внутри селекта вместо подписи — иначе
 // два текста наложились бы друг на друга.
@@ -439,12 +447,35 @@ const modifiers = computed(() => ({
     padding-top: 18px;
   }
 
-  // У нативного select текст стоит на 4px правее, чем у input с тем же
-  // отступом: браузер добавляет свой внутренний. Без поправки значение
-  // «New York» оказывалось правее подписи «State», а у остальных полей они
-  // начинаются на одной линии.
+  // Нативное оформление select убрано, чтобы его текст стоял там же, где у
+  // input: с ним браузер добавляет свой внутренний отступ, у каждого свой, и
+  // значение «New York» уезжало вправо от подписи «State». Стрелку рисует
+  // иконка справа; справа оставлено место под неё.
   &--floating &__select {
-    padding-inline-start: calc(var(--st-global-distance-space-inset-md) - 4px);
+    padding-inline-end: calc(var(--st-global-distance-space-inset-md) + 24px);
+
+    appearance: none;
+    text-overflow: ellipsis;
+  }
+
+  // Фокус — как у остальных полей: серая рамка и подложка, а не синий контур
+  // браузера. #A0ADB7 — тот же цвет из референса, что у Cc3InputField, точного
+  // токена под него нет.
+  &--floating &__select:focus {
+    background-color: var(--st-content-background-color-neutral-subtle);
+    border-color: #a0adb7;
+    outline: none;
+  }
+
+  &__chevron {
+    grid-area: 1 / 1;
+    place-self: center end;
+
+    margin-inline-end: var(--st-global-distance-space-inset-md);
+
+    color: var(--st-content-foreground-color-neutral-primary);
+    pointer-events: none;
+    z-index: 1;
   }
 
   // Подсказка-образец («+7 ___») мешала бы опущенной подписи: она
