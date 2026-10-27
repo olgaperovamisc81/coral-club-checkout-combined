@@ -299,6 +299,7 @@ function onEditConfirm(profile: DeliveryProfile) {
   selectedEntryId.value = profile.id
   editingEntryId.value = undefined
   isEditDialogOpen.value = false
+  isBookOpen.value = false
   mode.value = 'summary'
 }
 
@@ -307,17 +308,21 @@ function onEditClose() {
   editingEntryId.value = undefined
 }
 
-function onAddNew() {
-  isBookOpen.value = false
+/**
+ * «Добавить» в книге добавляет адрес того способа, который выбран в её
+ * свитчере, — не обязательно способа страницы. Книга остаётся открытой под
+ * окном: «Отменить» возвращает в неё, а подтверждение закрывает обе.
+ */
+function onAddNew(method: DeliveryProfileMethod) {
+  editingEntryId.value = undefined
 
-  if (activeMethod.value === 'pickup') {
-    editingEntryId.value = undefined
+  if (method === 'pickup') {
     isPickupDialogOpen.value = true
 
     return
   }
 
-  openNewForm()
+  isEditDialogOpen.value = true
 }
 
 function onPickupConfirm(profile: DeliveryProfile) {
@@ -326,6 +331,7 @@ function onPickupConfirm(profile: DeliveryProfile) {
   selectedEntryId.value = profile.id
   editingEntryId.value = undefined
   isPickupDialogOpen.value = false
+  isBookOpen.value = false
   mode.value = 'summary'
 
   void nextTick(() => sectionRef.value?.scrollIntoView({ behavior: 'smooth', block: 'start' }))
@@ -395,7 +401,7 @@ function onEntryDelete(id: string) {
     <Cc3CombinedAddressForm v-else :key="formKey" @change="onFormChange" />
 
     <Cc3CombinedAddressEditDialog
-      v-if="isEditDialogOpen && editingEntry"
+      v-if="isEditDialogOpen"
       :edit-profile="editingEntry"
       @close="onEditClose"
       @confirm="onEditConfirm"

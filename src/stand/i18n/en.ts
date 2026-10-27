@@ -49,6 +49,8 @@ export default {
   'combined.editTitle': 'Edit address',
   'combined.saveChanges': 'Save changes',
   'combined.editPickupTitle': 'Edit pickup point',
+  'combined.addTitle': 'New delivery address',
+  'combined.cancel': 'Cancel',
 
   // Delivery and pickup points
   'delivery.method.courier': 'Courier',

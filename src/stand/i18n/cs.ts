@@ -49,6 +49,8 @@ export default {
   'combined.editTitle': 'Úprava adresy',
   'combined.saveChanges': 'Uložit změny',
   'combined.editPickupTitle': 'Úprava výdejního místa',
+  'combined.addTitle': 'Nová doručovací adresa',
+  'combined.cancel': 'Zrušit',
 
   // Doručení a výdejní místa
   'delivery.method.courier': 'Kurýr',

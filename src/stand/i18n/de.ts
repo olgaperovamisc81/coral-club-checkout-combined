@@ -49,6 +49,8 @@ export default {
   'combined.editTitle': 'Adresse bearbeiten',
   'combined.saveChanges': 'Änderungen speichern',
   'combined.editPickupTitle': 'Abholpunkt bearbeiten',
+  'combined.addTitle': 'Neue Lieferadresse',
+  'combined.cancel': 'Abbrechen',
 
   // Lieferung und Abholstellen
   'delivery.method.courier': 'Kurier',

@@ -1,16 +1,23 @@
 <script setup lang="ts">
-import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
+import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 
 import Cc3InputField from '@/components/Field/Cc3InputField.vue'
 import Cc3Icon from '@/components/Icon/Cc3Icon.vue'
 import { useStand } from '@/stand/composables/useStand'
 
+import Cc3ModalDeliveryMethodSwitch from '../Modal/Cc3ModalDeliveryMethodSwitch.vue'
 import type { DeliveryProfile, DeliveryProfileMethod } from '../Modal/deliveryProfile'
 
 /**
  * Адресная книга комбинированной версии — окно на весь экран, а не блок в
  * теле страницы. Оформлена как способ доставки и оплаты: один контейнер,
  * строки с радио справа, «Изменить адрес» под каждой строкой.
+ *
+ * Сверху тот же свитчер «Курьер / Самовывоз», что и на странице: он заметнее
+ * чипсов, и книга показывает адреса одного способа, а нижняя кнопка добавляет
+ * адрес именно этого способа. Поиск смотрит в оба способа: если совпадения
+ * есть только в одном, свитчер сам переходит на него, а если в обоих —
+ * остаётся как есть.
  *
  * «Изменить адрес» стоит вне label: иначе label свяжется с первой кнопкой
  * в строке, и клик по названию или адресу открывал бы редактирование вместо
@@ -19,7 +26,7 @@ import type { DeliveryProfile, DeliveryProfileMethod } from '../Modal/deliveryPr
 const props = defineProps<{
   entries: DeliveryProfile[]
   selectedId?: string
-  /** Активный способ: от него зависит, что добавляет нижняя кнопка. */
+  /** Активный способ: на нём книга открывается. */
   method: DeliveryProfileMethod
 }>()
 
@@ -27,7 +34,7 @@ const emit = defineEmits<{
   close: []
   select: [id: string]
   edit: [id: string]
-  add: []
+  add: [method: DeliveryProfileMethod]
 }>()
 
 const { t } = useStand()
@@ -41,33 +48,52 @@ const text = computed(() => ({
   addPickup: t('combined.addPickup'),
 }))
 
-const addLabel = computed(() =>
-  props.method === 'pickup' ? text.value.addPickup : text.value.addCourier,
-)
+const methodTabs = computed(() => ({
+  courier: t('concept.delivery.courier.title'),
+  pickup: t('concept.delivery.pickup.action'),
+}))
 
-type FilterId = 'all' | DeliveryProfileMethod
-
-const filters = computed<{ id: FilterId; label: string }[]>(() => [
-  { id: 'all', label: t('common.all') },
-  { id: 'courier', label: t('concept.delivery.courier.title') },
-  { id: 'pickup', label: t('concept.delivery.pickup.action') },
-])
-
-// Книга открывается на вкладке активного способа: из самовывоза — самовывоз,
-// из курьера — курьер. Окно создаётся заново при каждом открытии.
-const activeFilter = ref<FilterId>(props.method)
+// Книга открывается на способе страницы: из самовывоза — самовывоз, из
+// курьера — курьер. Окно создаётся заново при каждом открытии.
+const activeMethod = ref<DeliveryProfileMethod>(props.method)
 const search = ref('')
 
-function matches(entry: DeliveryProfile) {
-  const byFilter = activeFilter.value === 'all' || entry.method === activeFilter.value
+const addLabel = computed(() =>
+  activeMethod.value === 'pickup' ? text.value.addPickup : text.value.addCourier,
+)
+
+function matchesQuery(entry: DeliveryProfile) {
   const query = search.value.trim().toLowerCase()
-  const byQuery =
+
+  return (
     query.length === 0 ||
     entry.name.toLowerCase().includes(query) ||
     entry.addressLine.toLowerCase().includes(query)
-
-  return byFilter && byQuery
+  )
 }
+
+function matches(entry: DeliveryProfile) {
+  return entry.method === activeMethod.value && matchesQuery(entry)
+}
+
+// Совпадения только в другом способе — переходим на него, иначе человек видел
+// бы пустой список и думал, что адреса нет. Если совпадения в обоих способах
+// или нигде, свитчер не трогаем: человек выбрал его сам.
+watch(search, () => {
+  if (search.value.trim().length === 0) {
+    return
+  }
+
+  const methodsWithMatches = new Set(
+    props.entries.filter((entry) => matchesQuery(entry)).map((entry) => entry.method),
+  )
+
+  if (methodsWithMatches.size === 1) {
+    const [only] = [...methodsWithMatches]
+
+    activeMethod.value = only
+  }
+})
 
 /**
  * Пока окно открыто, страница под ним не прокручивается — иначе на
@@ -107,21 +133,15 @@ function onKeydown(event: KeyboardEvent) {
         </button>
       </div>
 
+      <Cc3ModalDeliveryMethodSwitch
+        :active="activeMethod"
+        :courier-label="methodTabs.courier"
+        :pickup-label="methodTabs.pickup"
+        @select="activeMethod = $event"
+      />
+
       <div class="cc3-combined-address-book__controls">
         <Cc3InputField v-model="search" type="text" :placeholder="text.search" />
-
-        <div class="cc3-combined-address-book__chips">
-          <button
-            v-for="filter in filters"
-            :key="filter.id"
-            type="button"
-            class="cc3-combined-address-book__chip"
-            :class="{ 'cc3-combined-address-book__chip--active': activeFilter === filter.id }"
-            @click="activeFilter = filter.id"
-          >
-            {{ filter.label }}
-          </button>
-        </div>
       </div>
 
       <div class="cc3-combined-address-book__body">
@@ -158,7 +178,7 @@ function onKeydown(event: KeyboardEvent) {
       </div>
 
       <div class="cc3-combined-address-book__footer">
-        <button type="button" class="cc3-combined-address-book__add" @click="emit('add')">
+        <button type="button" class="cc3-combined-address-book__add" @click="emit('add', activeMethod)">
           <Cc3Icon name="plus-md" :size="24" />
           {{ addLabel }}
         </button>
@@ -229,41 +249,10 @@ function onKeydown(event: KeyboardEvent) {
     transform: translateY(-50%);
   }
 
+  // Свитчер сверху несёт свои отступы, поэтому у поиска они сверху меньше.
   &__controls {
-    display: flex;
-    flex-direction: column;
-    gap: var(--st-global-distance-space-inset-xl);
-
-    padding: var(--st-global-distance-space-inset-2xl);
-  }
-
-  &__chips {
-    display: flex;
-    flex-wrap: nowrap;
-    gap: var(--st-global-distance-space-inset-md);
-
-    overflow-x: auto;
-  }
-
-  &__chip {
-    flex-shrink: 0;
-
-    padding: var(--st-global-distance-space-inset-sm) var(--st-global-distance-space-inset-xl);
-
-    font-family: inherit;
-
-    @include font('label-md');
-
-    color: var(--st-content-foreground-color-neutral-primary);
-    background-color: var(--st-content-background-color-default-solid-normal);
-    border: 1px solid var(--st-content-border-color-neutral-implicit);
-    border-radius: var(--st-global-radius-pill);
-    cursor: pointer;
-
-    &--active {
-      color: var(--st-action-foreground-color-positive-normal);
-      border-color: var(--st-action-foreground-color-positive-normal);
-    }
+    padding: var(--st-global-distance-space-inset-xl) var(--st-global-distance-space-inset-2xl)
+      var(--st-global-distance-space-inset-2xl);
   }
 
   &__body {

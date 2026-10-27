@@ -9,13 +9,15 @@ import type { DeliveryProfile } from '../Modal/deliveryProfile'
 import Cc3CombinedAddressForm from './Cc3CombinedAddressForm.vue'
 
 /**
- * Правка сохранённого адреса курьера — окном на весь экран. Внутри та же
+ * Правка сохранённого адреса курьера и добавление нового — окном на весь
+ * экран, а не формой на странице. Внутри та же
  * форма, что на странице, только открытая сразу с данными адреса; внизу
  * окна, всегда на виду, «Сохранить изменения» и «Удалить». Пока обязательные поля не заполнены,
  * сохранить нельзя: адрес без них страница всё равно не примет.
  */
 const props = defineProps<{
-  editProfile: DeliveryProfile
+  /** Есть при правке; без него окно создаёт новый адрес. */
+  editProfile?: DeliveryProfile
 }>()
 
 const emit = defineEmits<{
@@ -27,10 +29,11 @@ const emit = defineEmits<{
 const { t } = useStand()
 
 const text = computed(() => ({
-  title: t('combined.editTitle'),
+  title: props.editProfile ? t('combined.editTitle') : t('combined.addTitle'),
   close: t('common.close'),
-  save: t('combined.saveChanges'),
+  save: props.editProfile ? t('combined.saveChanges') : t('common.continue'),
   remove: t('common.delete'),
+  cancel: t('combined.cancel'),
 }))
 
 const draft = ref<{ profile: DeliveryProfile; complete: boolean }>()
@@ -50,7 +53,10 @@ function save() {
 
 function deleteProfile() {
   isDeleteConfirmOpen.value = false
-  emit('delete', props.editProfile.id)
+
+  if (props.editProfile) {
+    emit('delete', props.editProfile.id)
+  }
 }
 
 /**
@@ -111,11 +117,21 @@ function onKeydown(event: KeyboardEvent) {
           </button>
 
           <button
+            v-if="editProfile"
             type="button"
             class="cc3-combined-address-edit-dialog__delete"
             @click="isDeleteConfirmOpen = true"
           >
             {{ text.remove }}
+          </button>
+
+          <button
+            v-else
+            type="button"
+            class="cc3-combined-address-edit-dialog__delete"
+            @click="emit('close')"
+          >
+            {{ text.cancel }}
           </button>
         </div>
       </div>
