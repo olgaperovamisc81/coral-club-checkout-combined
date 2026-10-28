@@ -67,8 +67,10 @@ export function checkField(
         : { key: 'error.postal.format', params: { example: rule.example } }
     }
 
+    // Имя из одного слова неверно только там, где получатель обязателен: у
+    // необязательного (самовывоз) пишут как угодно.
     case 'recipientName':
-      return /\S+\s+\S+/.test(value) ? undefined : { key: 'error.name.required' }
+      return !required || /\S+\s+\S+/.test(value) ? undefined : { key: 'error.name.required' }
 
     // Телефон по стране не проверяем: на тестовом стенде вводят любой номер,
     // а подсказка с кодом страны стоит в самом поле. Остаётся только «не пусто».

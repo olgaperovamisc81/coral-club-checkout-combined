@@ -36,7 +36,14 @@ defineEmits<{
 const recipientValues = defineModel<Partial<Record<FieldKey, string>>>({ required: true })
 
 const { t } = useStand()
-const { fields: recipientFields } = useStandFields('recipient')
+const { fields: configFields } = useStandFields('recipient')
+
+// В самовывозе получатель необязателен: пункт выдаст заказ по коду, а контакты
+// нужны лишь для уведомления. Состав полей берём из конфига страны, снимаем
+// только обязательность — звёздочки и ошибки «Укажите…» пропадают вместе с ней.
+const recipientFields = computed(() =>
+  configFields.value.map((field) => ({ ...field, required: false })),
+)
 
 const text = computed(() => ({
   viewOnMap: t('delivery.viewOnMap'),
