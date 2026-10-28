@@ -209,6 +209,15 @@ watch([deliveryCost, courierVariants], () => setDeliveryPrice(deliveryCost.value
     > .cc3-modal-footer {
       margin-top: var(--st-global-distance-space-inset-xs);
     }
+
+    // В самовывозе вариантов доставки нет, и за блоком доставки сразу идёт
+    // кошелёк или оплата. Блок доставки уже держит снизу свои 12, поэтому
+    // собственный верхний отступ следующего блока лишний: без этой строки
+    // заголовок стоял бы на 12 дальше, чем у «Вариантов доставки».
+    > .cc3-combined-delivery + .cc3-combined-wallet,
+    > .cc3-combined-delivery + .cc3-combined-payment {
+      padding-top: 0;
+    }
   }
 
   // Отступы по краям как у остальных блоков страницы: сами списки
