@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
+import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 
 import Cc3Icon from '@/components/Icon/Cc3Icon.vue'
 import type { MapPoint } from '@/components/Map/mapTypes'
@@ -328,19 +328,7 @@ function backToPicker() {
   view.value = 'map'
 }
 
-// Обязательные поля получателя, оставленные пустыми. Пустое значение — ошибка,
-// а не повод подставить прежнее: стёртое имя не должно возвращаться.
-const isSubmitAttempted = ref(false)
-
-const missingRecipientKeys = computed(() =>
-  recipientFields.value
-    .filter((field) => field.required && !(recipientValues.value[field.key] ?? '').trim())
-    .map((field) => field.key),
-)
-
-const invalidRecipientKeys = computed(() =>
-  isSubmitAttempted.value ? missingRecipientKeys.value : [],
-)
+const detailRef = ref<InstanceType<typeof Cc3CombinedPickupDetail>>()
 
 function confirm() {
   const detail = detailView.value
@@ -349,17 +337,10 @@ function confirm() {
     return
   }
 
-  if (missingRecipientKeys.value.length > 0) {
-    isSubmitAttempted.value = true
-
-    // Первое пустое поле получает фокус, чтобы не искать, где ошибка.
-    void nextTick(() =>
-      document
-        .querySelector<HTMLInputElement>(
-          '.cc3-combined-pickup-detail .cc3-stand-field--invalid input',
-        )
-        ?.focus(),
-    )
+  // Пустые или неверные контакты — ошибка, а не повод сохранить пункт: окно
+  // показывает её у поля и ставит туда фокус.
+  if (!detailRef.value?.isValid) {
+    detailRef.value?.revealErrors()
 
     return
   }
@@ -505,9 +486,9 @@ function onKeydown(event: KeyboardEvent) {
 
         <Cc3CombinedPickupDetail
           v-else-if="detailView"
+          ref="detailRef"
           v-model="recipientValues"
           :detail="detailView"
-          :invalid-keys="invalidRecipientKeys"
           @back="backToPicker"
         />
       </div>

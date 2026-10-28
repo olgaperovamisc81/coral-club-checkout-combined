@@ -37,18 +37,24 @@ const text = computed(() => ({
 }))
 
 const draft = ref<{ profile: DeliveryProfile; complete: boolean }>()
+const formRef = ref<InstanceType<typeof Cc3CombinedAddressForm>>()
 const isDeleteConfirmOpen = ref(false)
 
-const isSaveDisabled = computed(() => !draft.value?.complete)
 
 function onChange(payload: { profile: DeliveryProfile; complete: boolean }) {
   draft.value = payload
 }
 
+// Кнопка не отключается молча: с недозаполненной формой она показывает
+// ошибки и ведёт к первому полю с ошибкой.
 function save() {
   if (draft.value?.complete) {
     emit('confirm', draft.value.profile)
+
+    return
   }
+
+  formRef.value?.revealErrors()
 }
 
 function deleteProfile() {
@@ -103,14 +109,13 @@ function onKeydown(event: KeyboardEvent) {
       </div>
 
       <div class="cc3-combined-address-edit-dialog__body">
-        <Cc3CombinedAddressForm :edit-profile="editProfile" @change="onChange" />
+        <Cc3CombinedAddressForm ref="formRef" :edit-profile="editProfile" @change="onChange" />
 
         <!-- Кнопки прилипают к низу окна: форма длинная и уходит под них. -->
         <div class="cc3-combined-address-edit-dialog__actions">
           <button
             type="button"
             class="cc3-combined-address-edit-dialog__save"
-            :disabled="isSaveDisabled"
             @click="save"
           >
             {{ text.save }}

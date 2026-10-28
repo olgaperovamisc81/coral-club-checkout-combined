@@ -1,10 +1,12 @@
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, nextTick } from 'vue'
 
 import Cc3StandField from '@/stand/components/Cc3StandField.vue'
 import { useStand } from '@/stand/composables/useStand'
 import { useStandFields } from '@/stand/composables/useStandFields'
 import type { FieldKey } from '@/stand/config/types'
+
+import { useFieldErrors } from '../useFieldErrors'
 
 /**
  * Шаг уточнения пункта после «Привезти сюда»: что за пункт, как работает,
@@ -23,8 +25,6 @@ type PickupDetail = {
 
 defineProps<{
   detail: PickupDetail
-  /** Поля получателя, которые нужно показать с ошибкой «Заполните это поле». */
-  invalidKeys?: FieldKey[]
 }>()
 
 defineEmits<{
@@ -44,8 +44,25 @@ const text = computed(() => ({
   directions: t('pickup.directions'),
   contacts: t('pickup.contacts'),
   recipientSection: t('group.recipient.title'),
-  required: t('combined.fieldRequired'),
 }))
+
+const { visible, isValid, touch, reveal } = useFieldErrors(recipientFields, recipientValues)
+
+/**
+ * Показать ошибки получателя и привести к первому полю с ошибкой. Зовёт окно,
+ * когда «Продолжить» нажали с пустыми или неверными контактами.
+ */
+function revealErrors() {
+  reveal()
+
+  void nextTick(() =>
+    document
+      .querySelector<HTMLInputElement>('.cc3-combined-pickup-detail .cc3-stand-field--invalid input')
+      ?.focus(),
+  )
+}
+
+defineExpose({ isValid, revealErrors })
 </script>
 
 <template>
@@ -96,9 +113,10 @@ const text = computed(() => ({
         :key="field.key"
         v-model="recipientValues[field.key]"
         :field="field"
-        :invalid="invalidKeys?.includes(field.key)"
-        :error="text.required"
+        :invalid="Boolean(visible[field.key])"
+        :error="visible[field.key]"
         floating
+        @focusout="touch(field.key)"
       />
     </div>
   </div>

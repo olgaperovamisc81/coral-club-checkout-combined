@@ -14,6 +14,7 @@ import type { AddressSuggestion } from '@/stand/suggest'
 
 import type { DeliveryProfile } from '../Modal/deliveryProfile'
 import Cc3CombinedMapDialog from './Cc3CombinedMapDialog.vue'
+import { useFieldErrors } from './useFieldErrors'
 
 /**
  * Форма адреса курьера комбинированной версии. Кнопки «Сохранить» нет:
@@ -42,7 +43,6 @@ const text = computed(() => ({
   addressSection: t('combined.shipTo'),
   recipientSection: t('group.recipient.title'),
   pickOnMap: t('address.mapShow'),
-  required: t('combined.fieldRequired'),
 }))
 
 const { fields: addressFields } = useStandFields('address')
@@ -130,48 +130,34 @@ const recipientDisplayName = computed(() => {
     .join(' ')
 })
 
-const isFilled = (key: FieldKey) => Boolean(values.value[key]?.trim())
+// Проверка всех полей формы: что не так и когда это показать. Пустое
+// обязательное поле и неверный формат (индекс, телефон, почта) — ошибки, а
+// не повод пропустить адрес дальше.
+const allFields = computed(() => [...renderedAddressFields.value, ...recipientFields.value])
+const { messages, visible, isValid, touch, reveal } = useFieldErrors(allFields, values)
 
 /**
- * Адрес заполнен, когда есть все обязательные поля адреса. От этого зависят
- * варианты доставки: им получатель не нужен, и показывать их можно, не
- * дожидаясь имени, телефона и почты.
+ * Адрес заполнен, когда у полей адреса нет ошибок. От этого зависят варианты
+ * доставки: им получатель не нужен, и показывать их можно, не дожидаясь
+ * имени, телефона и почты. Индекс «1» адресом не считается.
  */
 const isAddressComplete = computed(() =>
-  addressFields.value.filter((field) => field.required).every((field) => isFilled(field.key)),
+  renderedAddressFields.value.every((field) => !messages.value[field.key]),
 )
 
 /**
- * Адрес добавлен в книгу, когда заполнено всё обязательное — и адрес, и
- * получатель. Состав обязательных полей приходит из конфига страны, а не из
- * вёрстки.
+ * Адрес добавлен в книгу, когда нет ошибок ни у адреса, ни у получателя.
+ * Состав обязательных полей приходит из конфига страны, а не из вёрстки.
  */
-const isComplete = computed(
-  () =>
-    isAddressComplete.value &&
-    recipientFields.value.filter((field) => field.required).every((field) => isFilled(field.key)),
-)
-
-// Обязательные поля, оставленные пустыми. Подсвечиваются после первой
-// попытки оплатить, а не сразу при загрузке: пустая форма не должна быть
-// красной.
-const isSubmitAttempted = ref(false)
-
-const missingKeys = computed(() =>
-  [...addressFields.value, ...recipientFields.value]
-    .filter((field) => field.required && !isFilled(field.key))
-    .map((field) => field.key),
-)
-
-const invalidKeys = computed(() => (isSubmitAttempted.value ? missingKeys.value : []))
+const isComplete = isValid
 
 /**
- * Показать ошибки и привести человека к первому пустому обязательному полю.
- * Вызывает страница, когда оплату нажали с недозаполненной формой: адрес мы
- * показываем и без получателя, а отсутствие получателя ловим здесь.
+ * Показать все ошибки и привести человека к первому полю с ошибкой. Вызывает
+ * страница при оплате и окна — по «Продолжить» и «Сохранить»: адрес мы
+ * показываем и без получателя, а недостающее ловим здесь.
  */
 function revealErrors() {
-  isSubmitAttempted.value = true
+  reveal()
 
   void nextTick(() => {
     const first = document.querySelector<HTMLInputElement>(
@@ -231,10 +217,11 @@ watch(
           <Cc3StandField
             v-model="values[field.key]"
             :field="field"
-            :invalid="invalidKeys.includes(field.key)"
-            :error="text.required"
+            :invalid="Boolean(visible[field.key])"
+            :error="visible[field.key]"
             floating
             @select="onSuggestionSelect"
+            @focusout="touch(field.key)"
           />
 
           <button
@@ -250,9 +237,10 @@ watch(
           v-else
           v-model="values[field.key]"
           :field="field"
-          :invalid="invalidKeys.includes(field.key)"
-          :error="text.required"
+          :invalid="Boolean(visible[field.key])"
+          :error="visible[field.key]"
           floating
+          @focusout="touch(field.key)"
         />
       </template>
     </div>
@@ -265,9 +253,10 @@ watch(
         :key="field.key"
         v-model="values[field.key]"
         :field="field"
-        :invalid="invalidKeys.includes(field.key)"
-        :error="text.required"
+        :invalid="Boolean(visible[field.key])"
+        :error="visible[field.key]"
         floating
+        @focusout="touch(field.key)"
       />
     </div>
 
