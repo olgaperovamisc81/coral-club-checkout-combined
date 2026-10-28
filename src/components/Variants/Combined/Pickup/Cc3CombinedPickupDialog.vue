@@ -240,6 +240,7 @@ type PickupDetailView = {
   title: string
   address: string
   priceLabel: string
+  price?: number
   storage?: string
   directions?: string
   phone?: string
@@ -261,6 +262,7 @@ const detailView = computed<PickupDetailView | undefined>(() => {
       title: pickupProviderLabels.value[point.provider],
       address: point.address,
       priceLabel: metaOf(point),
+      price: point.price,
       storage: lines.storage,
       directions: lines.directions,
       phone: point.phone,
@@ -272,6 +274,7 @@ const detailView = computed<PickupDetailView | undefined>(() => {
       title: props.editProfile.typeLabel,
       address: props.editProfile.addressLine,
       priceLabel: props.editProfile.priceLabel,
+      price: props.editProfile.price,
     }
   }
 
@@ -326,6 +329,7 @@ function confirm() {
     name: recipientName.value,
     addressLine: detail.address,
     priceLabel: detail.priceLabel,
+    price: detail.price,
     phone: recipientValues.value.recipientPhone ?? '',
     email: recipientValues.value.recipientEmail ?? '',
   })

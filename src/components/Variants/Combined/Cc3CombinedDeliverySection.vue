@@ -55,6 +55,7 @@ function toProfiles(): DeliveryProfile[] {
     priceLabel: `${t('delivery.eta')}, ${
       entry.price > 0 ? formatMoneyRounded(entry.price) : t('delivery.free')
     }`,
+    price: entry.price,
     phone: entry.phone,
     email: entry.email,
   }))

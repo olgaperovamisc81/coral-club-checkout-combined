@@ -75,18 +75,26 @@ watch(courierVariants, (list) => {
 })
 
 /**
- * Строка «Доставка» в итогах берёт цену отсюда. У пункта выдачи и у ещё не
- * заполненного адреса цены нет — строка обнуляется.
+ * Цена доставки в итогах. У курьера её называет выбранный вариант, у пункта
+ * выдачи — сам пункт (бесплатный офис, СДЭК за 199 ₽). У ещё не заполненного
+ * адреса цены нет, и строка обнуляется. Раньше пункт всегда давал ноль, и
+ * платный пункт показывал цену в карточке, а в итоге оставался бесплатным.
  */
-watch(
-  [courierVariant, isOptionsVisible, isResolved, courierVariants],
-  () => {
-    setDeliveryPrice(
-      isOptionsVisible.value && isResolved.value ? priceOf(courierVariant.value) : 0,
-    )
-  },
-  { immediate: true },
-)
+const deliveryCost = computed(() => {
+  if (!isResolved.value) {
+    return 0
+  }
+
+  if (isOptionsVisible.value) {
+    return priceOf(courierVariant.value)
+  }
+
+  return state.value.profile?.price ?? 0
+})
+
+watch([deliveryCost, courierVariants], () => setDeliveryPrice(deliveryCost.value), {
+  immediate: true,
+})
 </script>
 
 <template>
