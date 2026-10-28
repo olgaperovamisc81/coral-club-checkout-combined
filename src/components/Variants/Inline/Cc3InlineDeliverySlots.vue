@@ -6,6 +6,7 @@ import {
   deliveryTimesFor,
   hasDeliverySlots,
 } from '@/stand/config/deliverySlots'
+import { useSlotConflict } from '@/composables/useSlotConflict'
 import { useStand } from '@/stand/composables/useStand'
 
 /**
@@ -42,7 +43,15 @@ const dateChips = computed(() =>
 
 // Окна зависят от выбранной даты, а не только от способа: у экспресса на
 // сегодня отпадают ближайшие часы, на завтра набор полный.
-const timeChips = computed(() => deliveryTimesFor(props.variantId, selectedDate.value))
+const { takenSlot, reportSelection } = useSlotConflict()
+
+// Занятое окно из ряда убирается: имитация «слот пропал к оплате».
+const timeChips = computed(() =>
+  deliveryTimesFor(props.variantId, selectedDate.value).filter(
+    (chip) =>
+      !(takenSlot.value?.date === selectedDate.value && takenSlot.value.time === chip.value),
+  ),
+)
 
 /**
  * Сменили способ — выбор возвращается к ближайшей дате.
@@ -80,6 +89,15 @@ watch(
       selectedTime.value = chips[0]?.value ?? ''
     }
   },
+  { immediate: true },
+)
+
+watch(
+  [selectedDate, selectedTime],
+  () =>
+    reportSelection(
+      selectedTime.value ? { date: selectedDate.value, time: selectedTime.value } : undefined,
+    ),
   { immediate: true },
 )
 </script>

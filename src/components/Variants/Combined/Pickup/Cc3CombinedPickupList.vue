@@ -17,6 +17,7 @@ type PickupListItem = {
   name: string
   address: string
   meta: string
+  closed?: boolean
 }
 
 type PickupFilter = {
@@ -46,6 +47,7 @@ const { t } = useStand()
 const text = computed(() => ({
   findAddress: t('common.findAddress'),
   openUntil: t('pickup.openUntil'),
+  closedNow: t('pickup.closedNow'),
 }))
 </script>
 
@@ -81,7 +83,12 @@ const text = computed(() => ({
       >
         <span class="cc3-combined-pickup-list__name">{{ point.name }}</span>
         <span class="cc3-combined-pickup-list__address">{{ point.address }}</span>
-        <span class="cc3-combined-pickup-list__address">{{ text.openUntil }}</span>
+        <span
+          class="cc3-combined-pickup-list__address"
+          :class="{ 'cc3-combined-pickup-list__address--closed': point.closed }"
+        >
+          {{ point.closed ? text.closedNow : text.openUntil }}
+        </span>
         <span class="cc3-combined-pickup-list__meta">{{ point.meta }}</span>
       </button>
     </div>
@@ -167,6 +174,10 @@ const text = computed(() => ({
     @include font('body-md');
 
     color: var(--st-content-foreground-color-neutral-primary);
+
+    &--closed {
+      color: var(--st-content-foreground-color-negative-primary);
+    }
   }
 
   &__meta {

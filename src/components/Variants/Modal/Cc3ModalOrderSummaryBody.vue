@@ -21,7 +21,16 @@ defineProps<{
 }>()
 
 const { t } = useStand()
-const { summary, orderProductsPreview, promoCode } = useCheckout()
+const {
+  summary,
+  orderProductsPreview,
+  promoCode,
+  appliedPromo,
+  promoError,
+  applyPromo,
+  removePromo,
+  clearPromoError,
+} = useCheckout()
 
 const text = computed(() => ({
   subtotal: t('summary.items', { count: summary.value.itemsCount }),
@@ -33,6 +42,12 @@ const text = computed(() => ({
   }),
   promoPlaceholder: t('summary.promoPlaceholder'),
   apply: t('common.apply'),
+  promoRow: t('summary.promoRow'),
+  promoApplied: appliedPromo.value
+    ? t('summary.promoApplied', { code: appliedPromo.value.code })
+    : '',
+  promoRemove: t('summary.promoRemove'),
+  promoError: promoError.value === 'expired' ? t('summary.promoExpired') : t('summary.promoInvalid'),
 }))
 </script>
 
@@ -87,6 +102,14 @@ const text = computed(() => ({
       </div>
 
       <div
+        v-if="summary.promoDiscountFormatRounded"
+        class="cc3-modal-order-summary-body__row cc3-modal-order-summary-body__row--positive-value"
+      >
+        <dt>{{ text.promoRow }}</dt>
+        <dd>-{{ summary.promoDiscountFormatRounded }}</dd>
+      </div>
+
+      <div
         class="cc3-modal-order-summary-body__row cc3-modal-order-summary-body__row--total"
       >
         <dt>{{ text.total }}</dt>
@@ -95,22 +118,46 @@ const text = computed(() => ({
     </dl>
 
     <div class="cc3-modal-order-summary-body__promo">
-      <div class="cc3-modal-order-summary-body__promo-field">
-        <input
-          v-model="promoCode"
-          type="text"
-          :placeholder="text.promoPlaceholder"
-          class="cc3-modal-order-summary-body__promo-input"
-        />
+      <div v-if="appliedPromo" class="cc3-modal-order-summary-body__promo-field">
+        <span class="cc3-modal-order-summary-body__promo-applied">{{ text.promoApplied }}</span>
 
         <button
           type="button"
           class="cc3-modal-order-summary-body__promo-apply"
-          :disabled="!promoCode"
+          @click="removePromo"
         >
-          {{ text.apply }}
+          {{ text.promoRemove }}
         </button>
       </div>
+
+      <template v-else>
+        <div
+          class="cc3-modal-order-summary-body__promo-field"
+          :class="{ 'cc3-modal-order-summary-body__promo-field--invalid': promoError }"
+        >
+          <input
+            v-model="promoCode"
+            type="text"
+            :placeholder="text.promoPlaceholder"
+            class="cc3-modal-order-summary-body__promo-input"
+            @input="clearPromoError"
+            @keydown.enter="applyPromo"
+          />
+
+          <button
+            type="button"
+            class="cc3-modal-order-summary-body__promo-apply"
+            :disabled="!promoCode"
+            @click="applyPromo"
+          >
+            {{ text.apply }}
+          </button>
+        </div>
+
+        <p v-if="promoError" class="cc3-modal-order-summary-body__promo-error" role="alert">
+          {{ text.promoError }}
+        </p>
+      </template>
     </div>
   </div>
 </template>
@@ -216,6 +263,12 @@ const text = computed(() => ({
     }
   }
 
+  // Строка промокода: подпись обычная, сумма скидки зелёная, как у кошелька.
+  &__row--positive-value dd {
+    color: var(--st-content-foreground-color-positive-secondary);
+    font-weight: 700;
+  }
+
   &__row--total {
     dt,
     dd {
@@ -243,6 +296,28 @@ const text = computed(() => ({
     &:focus-within {
       border-color: var(--st-action-background-color-positive-normal);
     }
+  }
+
+  &__promo-field--invalid,
+  &__promo-field--invalid:focus-within {
+    border-color: var(--st-content-border-color-negative-explicit);
+  }
+
+  &__promo-applied {
+    flex: 1;
+    min-width: 0;
+
+    @include font('label-sm');
+
+    color: var(--st-content-foreground-color-neutral-primary);
+  }
+
+  &__promo-error {
+    margin: var(--st-global-distance-space-inset-sm) 0 0;
+
+    @include font('body-sm');
+
+    color: var(--st-content-foreground-color-negative-primary);
   }
 
   &__promo-input {

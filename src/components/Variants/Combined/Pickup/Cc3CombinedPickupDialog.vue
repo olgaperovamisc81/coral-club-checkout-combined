@@ -15,6 +15,7 @@ import Cc3ModalConfirmDialog from '../../Modal/Cc3ModalConfirmDialog.vue'
 import type { DeliveryProfile } from '../../Modal/deliveryProfile'
 import Cc3CombinedNotice from '../Cc3CombinedNotice.vue'
 import Cc3CombinedSearchSheet from '../Cc3CombinedSearchSheet.vue'
+import { isPointClosed } from './closedPoints'
 import Cc3CombinedPickupDetail from './Cc3CombinedPickupDetail.vue'
 import Cc3CombinedPickupFilters from './Cc3CombinedPickupFilters.vue'
 import Cc3CombinedPickupList from './Cc3CombinedPickupList.vue'
@@ -180,6 +181,7 @@ const listItems = computed(() =>
     name: point.name,
     address: point.address,
     meta: metaOf(point),
+    closed: isPointClosed(point.id),
   })),
 )
 
@@ -272,6 +274,7 @@ const sheet = computed(() => {
     title: pickupProviderLabels.value[point.provider],
     address: point.address,
     meta: metaOf(point),
+    closed: isPointClosed(point.id),
   }
 })
 
@@ -287,6 +290,7 @@ type PickupDetailView = {
   storage?: string
   directions?: string
   phone?: string
+  closed?: boolean
 }
 
 /**
@@ -309,6 +313,7 @@ const detailView = computed<PickupDetailView | undefined>(() => {
       storage: lines.storage,
       directions: lines.directions,
       phone: point.phone,
+      closed: isPointClosed(point.id),
     }
   }
 
@@ -513,6 +518,7 @@ function onKeydown(event: KeyboardEvent) {
             :address="sheet.address"
             :recipient="recipientName"
             :meta="sheet.meta"
+            :closed="sheet.closed"
             @confirm="bringHere"
           />
 

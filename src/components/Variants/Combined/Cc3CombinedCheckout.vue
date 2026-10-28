@@ -4,7 +4,9 @@ import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useAddressGuard } from '@/composables/useAddressGuard'
 import { useCheckout } from '@/composables/useCheckout'
 import { useCourierVariants } from '@/composables/useCourierVariants'
+import { useSlotConflict } from '@/composables/useSlotConflict'
 import { useStand } from '@/stand/composables/useStand'
+import { hasDeliverySlots } from '@/stand/config/deliverySlots'
 
 // Хедер, сводка заказа и подвал те же, что в остальных концептах —
 // переиспользуем компоненты напрямую, а не копируем разметку. Своё у этой
@@ -17,6 +19,7 @@ import Cc3ModalSummaryBar from '../Modal/Cc3ModalSummaryBar.vue'
 import type { DeliveryProfile, DeliveryProfileMethod } from '../Modal/deliveryProfile'
 import Cc3CombinedDeliveryOptions from './Cc3CombinedDeliveryOptions.vue'
 import Cc3CombinedDeliverySection from './Cc3CombinedDeliverySection.vue'
+import Cc3CombinedNotice from './Cc3CombinedNotice.vue'
 import Cc3CombinedPaymentMethods from './Cc3CombinedPaymentMethods.vue'
 
 /**
@@ -29,11 +32,12 @@ import Cc3CombinedPaymentMethods from './Cc3CombinedPaymentMethods.vue'
  * плашка, а оплата не создаёт заказ — см. useAddressGuard.
  */
 const { summary, setDeliveryPrice } = useCheckout()
-const { t } = useStand()
+const { t, country } = useStand()
 const { courierVariants, defaultVariantId, priceOf } = useCourierVariants()
 
 const text = computed(() => ({
   optionsTitle: t('delivery.variants'),
+  slotTaken: t('delivery.slotTaken'),
 }))
 
 const state = ref<{
@@ -74,6 +78,23 @@ const isOptionsVisible = computed(() => state.value.method === 'courier')
 const isResolved = computed(() => Boolean(state.value.profile))
 
 const courierVariant = ref(defaultVariantId.value)
+
+// Имитация «слот пропал к оплате»: проверка включена, только когда слоты
+// есть на экране — у курьера, с выбранным адресом и в стране со слотами.
+const { arm, registerAnchor, isMessageVisible } = useSlotConflict()
+const slotsRef = ref<HTMLElement>()
+
+const isSlotCheckActive = computed(
+  () => isOptionsVisible.value && isResolved.value && hasDeliverySlots(country.value),
+)
+
+watch(isSlotCheckActive, (active) => arm(active), { immediate: true })
+
+onMounted(() =>
+  registerAnchor(() => slotsRef.value?.scrollIntoView({ behavior: 'smooth', block: 'center' })),
+)
+
+onBeforeUnmount(() => arm(false))
 
 // Набор вариантов зависит от страны, и выбранного в новом наборе может не
 // оказаться — тогда не выбрано ничего. Возвращаем выбор на первый.
@@ -119,8 +140,16 @@ watch([deliveryCost, courierVariants], () => setDeliveryPrice(deliveryCost.value
 
         <Cc3CombinedDeliveryOptions v-model="courierVariant" :resolved="isResolved" />
 
-        <div v-if="isResolved" class="cc3-combined-checkout__slots">
+        <div v-if="isResolved" ref="slotsRef" class="cc3-combined-checkout__slots">
           <Cc3InlineDeliverySlots :variant-id="courierVariant" />
+
+          <Cc3CombinedNotice
+            v-if="isMessageVisible"
+            tone="warning"
+            class="cc3-combined-checkout__slot-notice"
+          >
+            {{ text.slotTaken }}
+          </Cc3CombinedNotice>
         </div>
       </section>
 
@@ -189,6 +218,10 @@ watch([deliveryCost, courierVariants], () => setDeliveryPrice(deliveryCost.value
 
   // Слоты — общий компонент с инлайном, там отступ над ними свой. Здесь
   // список способов стоит рамкой, и слотам нужен воздух под ней.
+  &__slot-notice {
+    margin-top: var(--st-global-distance-space-inset-xl);
+  }
+
   &__slots {
     padding-top: var(--st-global-distance-space-inset-2xl);
   }

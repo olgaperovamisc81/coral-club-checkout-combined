@@ -11,6 +11,8 @@ import { pickupPoints as standPickupPoints } from '@/stand/config/pickupPoints'
 import type { PickupProviderCode, StandAddressFields } from '@/stand/config/types'
 import { useStand } from '@/stand/composables/useStand'
 
+import { findPromoRule } from './promoCodes'
+
 export type DeliveryMethod = 'courier' | 'pickup'
 
 export type PickupProvider = PickupProviderCode
@@ -274,9 +276,12 @@ const acceptTerms = ref(true)
  */
 const isSummaryDetailsOpen = ref(false)
 
-// Промокод — только визуальный элемент. Реальной проверки кодов нет:
-// мы не знаем бизнес-правил скидок, поэтому кнопка ничего не применяет.
+// Промокод: то, что человек вводит, применённый код и причина отказа живут
+// отдельно. Проверка по тестовому набору из promoCodes.ts — бизнес-правил
+// скидок мы не знаем.
 const promoCode = ref('')
+const appliedPromo = ref<{ code: string; percent: number }>()
+const promoError = ref<'invalid' | 'expired'>()
 
 export function useCheckout() {
   const { hasSavedAddresses, country, countryConfig, t } = useStand()
@@ -403,6 +408,31 @@ export function useCheckout() {
 
   const isPickup = computed(() => deliveryMethod.value === 'pickup')
 
+  /** Применить введённый код: найденный даёт скидку, остальные — причину отказа. */
+  function applyPromo() {
+    const rule = findPromoRule(promoCode.value)
+
+    if (rule?.kind === 'percent') {
+      appliedPromo.value = { code: promoCode.value.trim().toUpperCase(), percent: rule.percent }
+      promoError.value = undefined
+      promoCode.value = ''
+
+      return
+    }
+
+    promoError.value = rule?.kind === 'expired' ? 'expired' : 'invalid'
+  }
+
+  function removePromo() {
+    appliedPromo.value = undefined
+    promoError.value = undefined
+  }
+
+  // Правка кода после отказа снимает ошибку: поле снова нейтральное.
+  function clearPromoError() {
+    promoError.value = undefined
+  }
+
   const isReady = computed(() => {
     if (!acceptTerms.value) {
       return false
@@ -440,12 +470,18 @@ export function useCheckout() {
       0,
     )
 
+    // Скидка считается от суммы товаров, а не от доставки.
+    const promoDiscount = appliedPromo.value
+      ? Math.round((itemsTotal * appliedPromo.value.percent) / 100)
+      : 0
+
     return {
       itemsCount: orderItemsCount,
       itemsTotal,
       points: orderPoints,
       delivery: deliveryPrice.value,
-      total: itemsTotal + deliveryPrice.value,
+      promoDiscount,
+      total: itemsTotal + deliveryPrice.value - promoDiscount,
     }
   })
 
@@ -469,6 +505,8 @@ export function useCheckout() {
     deliveryFormat: order.value.delivery > 0 ? money(order.value.delivery) : t('delivery.free'),
     deliveryFormatRounded:
       order.value.delivery > 0 ? moneyRounded(order.value.delivery) : t('delivery.free'),
+    promoDiscountFormatRounded:
+      order.value.promoDiscount > 0 ? moneyRounded(order.value.promoDiscount) : undefined,
     totalFormat: money(Math.max(0, order.value.total - walletAppliedAmount.value)),
     totalFormatRounded: moneyRounded(Math.max(0, order.value.total - walletAppliedAmount.value)),
     pickupCode: isPickup.value ? selectedPickupPoint.value?.code : undefined,
@@ -657,6 +695,11 @@ export function useCheckout() {
     orderProductsMoreCount,
     isSummaryDetailsOpen,
     promoCode,
+    appliedPromo,
+    promoError,
+    applyPromo,
+    removePromo,
+    clearPromoError,
     isReady,
   }
 }
@@ -686,4 +729,6 @@ export function resetCheckout(method: DeliveryMethod = 'courier', pickupPointId?
 
   isSummaryDetailsOpen.value = false
   promoCode.value = ''
+  appliedPromo.value = undefined
+  promoError.value = undefined
 }

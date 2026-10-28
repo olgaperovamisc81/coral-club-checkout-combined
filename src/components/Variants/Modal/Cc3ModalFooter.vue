@@ -5,6 +5,7 @@ import socialVk from '@/assets/modal/social-vk.svg'
 import Cc3Icon from '@/components/Icon/Cc3Icon.vue'
 import { useAddressGuard } from '@/composables/useAddressGuard'
 import { useCheckout } from '@/composables/useCheckout'
+import { useSlotConflict } from '@/composables/useSlotConflict'
 import { useStand } from '@/stand/composables/useStand'
 import { useStandOrder } from '@/stand/composables/useStandOrder'
 
@@ -46,6 +47,7 @@ const { acceptMarketing, acceptTerms, isReady } = useCheckout()
  * концепте сторож не взведён, и проверка просто пропускает клик дальше.
  */
 const { ensureAddressSaved } = useAddressGuard()
+const { ensureSlotAvailable } = useSlotConflict()
 
 const isTermsErrorShown = ref(false)
 const termsRef = ref<HTMLElement>()
@@ -67,6 +69,10 @@ function submit() {
   }
 
   if (!ensureAddressSaved()) {
+    return
+  }
+
+  if (!ensureSlotAvailable()) {
     return
   }
 

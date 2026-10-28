@@ -3,6 +3,7 @@ import { computed } from 'vue'
 
 import { useStand } from '@/stand/composables/useStand'
 
+import Cc3CombinedNotice from '../Cc3CombinedNotice.vue'
 import Cc3CombinedSheetFrame from '../Cc3CombinedSheetFrame.vue'
 
 /**
@@ -14,6 +15,7 @@ defineProps<{
   address: string
   recipient: string
   meta: string
+  closed?: boolean
 }>()
 
 const emit = defineEmits<{
@@ -27,6 +29,7 @@ const text = computed(() => ({
   hoursWeekday: t('pickup.hours.weekday'),
   hoursWeekend: t('pickup.hours.weekend'),
   confirm: t('combined.bringHere'),
+  closedNow: t('pickup.closedNow'),
 }))
 </script>
 
@@ -41,6 +44,8 @@ const text = computed(() => ({
       </div>
 
       <p class="cc3-combined-pickup-sheet__recipient">{{ meta }}</p>
+
+      <Cc3CombinedNotice v-if="closed" tone="warning">{{ text.closedNow }}</Cc3CombinedNotice>
 
       <div class="cc3-combined-pickup-sheet__hours">
         <p class="cc3-combined-pickup-sheet__hours-title">{{ text.hours }}</p>

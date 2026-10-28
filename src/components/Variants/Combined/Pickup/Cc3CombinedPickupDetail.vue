@@ -6,6 +6,7 @@ import { useStand } from '@/stand/composables/useStand'
 import { useStandFields } from '@/stand/composables/useStandFields'
 import type { FieldKey } from '@/stand/config/types'
 
+import Cc3CombinedNotice from '../Cc3CombinedNotice.vue'
 import { useFieldErrors } from '../useFieldErrors'
 
 /**
@@ -21,6 +22,7 @@ type PickupDetail = {
   storage?: string
   directions?: string
   phone?: string
+  closed?: boolean
 }
 
 defineProps<{
@@ -44,6 +46,7 @@ const text = computed(() => ({
   directions: t('pickup.directions'),
   contacts: t('pickup.contacts'),
   recipientSection: t('group.recipient.title'),
+  closedNotice: t('pickup.closedNotice'),
 }))
 
 const { visible, isValid, touch, reveal } = useFieldErrors(recipientFields, recipientValues)
@@ -83,6 +86,14 @@ defineExpose({ isValid, revealErrors })
         {{ detail.storage }}
       </span>
     </p>
+
+    <Cc3CombinedNotice
+      v-if="detail.closed"
+      tone="warning"
+      class="cc3-combined-pickup-detail__closed"
+    >
+      {{ text.closedNotice }}
+    </Cc3CombinedNotice>
 
     <div class="cc3-combined-pickup-detail__block">
       <p class="cc3-combined-pickup-detail__block-title">{{ text.hours }}</p>
@@ -161,6 +172,10 @@ defineExpose({ isValid, revealErrors })
     background: none;
     border: none;
     cursor: pointer;
+  }
+
+  &__closed {
+    margin-bottom: var(--st-global-distance-space-inset-xl);
   }
 
   &__address {
