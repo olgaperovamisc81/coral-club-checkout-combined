@@ -293,6 +293,12 @@ export function useCheckout() {
     isAddressBookOpen.value = false
     selectedPickupPointId.value = undefined
     cityInput.value = ''
+
+    // Баланс и валюта у каждой страны свои: сумма, списанная в рублях, в евро
+    // не имеет смысла.
+    walletMode.value = 'idle'
+    walletCustomAmount.value = ''
+    walletAppliedAmount.value = 0
   })
 
   /**
@@ -444,6 +450,9 @@ export function useCheckout() {
   // Сколько максимум можно списать с Coral Wallet: не больше баланса
   // и не больше суммы, которую вообще нужно оплатить за заказ.
   const walletMaxUsable = computed(() => Math.max(0, Math.min(walletBalance.value, order.value.total)))
+
+  // Баланс нулевой — блока кошелька на странице нет вовсе.
+  const isWalletAvailable = computed(() => walletBalance.value > 0)
 
   // Может ли баланс в принципе закрыть весь заказ — определяет формулировку
   // в состоянии «скидка ещё не применена» («скидка 100%» против «скидка до X»).
@@ -673,6 +682,7 @@ export function useCheckout() {
 
     walletMode,
     walletCustomAmount,
+    isWalletAvailable,
     isWalletFullyCovering,
     isOrderFullyPaidByWallet,
     isWalletCustomAmountValid,

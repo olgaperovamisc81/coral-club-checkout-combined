@@ -271,6 +271,8 @@ export default {
   'wallet.remaining': 'You still need to pay {amount} using one of the payment methods below.',
   'wallet.fullyCovered': 'The order is fully covered by your Coral Wallet balance.',
   'wallet.remove': 'Remove discount',
+  'wallet.applied': '{amount} discount has been applied to your order.',
+  'wallet.amountError': 'Enter an amount up to {amount}',
   'consent.marketing': 'I want to receive emails about discounts and promotions',
   'consent.prefix': 'By placing an order, you agree to the',
   'consent.privacy': 'Privacy Policy',

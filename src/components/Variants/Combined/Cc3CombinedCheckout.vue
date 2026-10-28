@@ -21,6 +21,7 @@ import Cc3CombinedDeliveryOptions from './Cc3CombinedDeliveryOptions.vue'
 import Cc3CombinedDeliverySection from './Cc3CombinedDeliverySection.vue'
 import Cc3CombinedNotice from './Cc3CombinedNotice.vue'
 import Cc3CombinedPaymentMethods from './Cc3CombinedPaymentMethods.vue'
+import Cc3CombinedWallet from './Cc3CombinedWallet.vue'
 
 /**
  * Комбинированная версия: берёт форму прямо на странице у инлайна, а адресную
@@ -153,6 +154,7 @@ watch([deliveryCost, courierVariants], () => setDeliveryPrice(deliveryCost.value
         </div>
       </section>
 
+      <Cc3CombinedWallet />
       <Cc3CombinedPaymentMethods />
       <Cc3ModalOrderSummary />
       <Cc3ModalFooter explain-blocked />

@@ -269,6 +269,8 @@ export default {
   'wallet.remaining': 'Вам всё ещё нужно оплатить {amount} одним из способов оплаты ниже.',
   'wallet.fullyCovered': 'Заказ полностью покрыт балансом Coral Wallet.',
   'wallet.remove': 'Убрать скидку',
+  'wallet.applied': '{amount} скидка применена к вашему заказу.',
+  'wallet.amountError': 'Введите сумму не больше {amount}',
   'consent.marketing': 'Я хочу получать письма о скидках и акциях',
   'consent.prefix': 'Оформляя заказ, вы соглашаетесь с',
   'consent.privacy': 'Политикой обработки персональных данных',

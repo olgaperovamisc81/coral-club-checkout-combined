@@ -269,6 +269,8 @@ export default {
   'wallet.remaining': 'Musisz jeszcze zapłacić {amount} jedną z metod płatności poniżej.',
   'wallet.fullyCovered': 'Zamówienie jest w pełni pokryte saldem Coral Wallet.',
   'wallet.remove': 'Usuń rabat',
+  'wallet.applied': 'Rabat {amount} został zastosowany do Twojego zamówienia.',
+  'wallet.amountError': 'Podaj kwotę do {amount}',
   'consent.marketing': 'Chcę otrzymywać e-maile o rabatach i promocjach',
   'consent.prefix': 'Składając zamówienie, akceptujesz',
   'consent.privacy': 'Politykę prywatności',

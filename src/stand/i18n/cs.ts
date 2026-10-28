@@ -269,6 +269,8 @@ export default {
   'wallet.remaining': 'Ještě musíte zaplatit {amount} jedním ze způsobů platby níže.',
   'wallet.fullyCovered': 'Objednávka je plně pokryta zůstatkem Coral Wallet.',
   'wallet.remove': 'Odebrat slevu',
+  'wallet.applied': 'Sleva {amount} byla uplatněna na vaši objednávku.',
+  'wallet.amountError': 'Zadejte částku do {amount}',
   'consent.marketing': 'Chci dostávat e-maily o slevách a akcích',
   'consent.prefix': 'Odesláním objednávky souhlasíte s',
   'consent.privacy': 'Zásadami ochrany osobních údajů',
