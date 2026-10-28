@@ -56,6 +56,7 @@ export default {
   'combined.homeDelivery': 'Доставка на дом',
   'combined.shipTo': 'Куда доставить',
   'combined.bookTitle': 'Сохранённые адреса',
+  'combined.pickAddress': 'Адрес не выбран. Выберите его из сохранённых или добавьте новый.',
 
   // Доставка и пункты выдачи
   'delivery.method.courier': 'Курьер',

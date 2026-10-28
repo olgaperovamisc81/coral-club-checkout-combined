@@ -66,6 +66,8 @@ const text = computed(() => ({
   addressTitle: t('combined.shipTo'),
   courierTab: t('combined.homeDelivery'),
   pickupTab: t('concept.delivery.pickup.action'),
+  pickAddress: t('combined.pickAddress'),
+  bookTitle: t('combined.bookTitle'),
   hours: t('pickup.hours'),
   hoursWeekday: t('pickup.hours.weekday'),
   hoursWeekend: t('pickup.hours.weekend'),
@@ -78,6 +80,9 @@ const selectedEntryId = ref<string | undefined>(entries.value[0]?.id)
 const editingEntryId = ref<string>()
 const mode = ref<Mode>(selectedEntryId.value ? 'summary' : 'form')
 const isBookOpen = ref(false)
+// Способ, на котором открывается книга после удаления: у удалённого адреса,
+// чтобы пустая вкладка показала информер, а не соседняя с адресами.
+const bookMethod = ref<DeliveryProfileMethod>()
 const isPickupDialogOpen = ref(false)
 const isEditDialogOpen = ref(false)
 const lastSelectedIds = ref<Partial<Record<DeliveryProfileMethod, string>>>({})
@@ -287,6 +292,7 @@ function onFormChange(payload: { profile: DeliveryProfile; complete: boolean }) 
 }
 
 function openBook() {
+  bookMethod.value = undefined
   isBookOpen.value = true
 }
 
@@ -358,6 +364,7 @@ function onPickupConfirm(profile: DeliveryProfile) {
 }
 
 function onEntryDelete(id: string) {
+  const removed = entries.value.find((entry) => entry.id === id)
   const wasSelected = selectedEntryId.value === id
 
   entries.value = entries.value.filter((entry) => entry.id !== id)
@@ -369,15 +376,28 @@ function onEntryDelete(id: string) {
     selectedEntryId.value = undefined
   }
 
-  // Как и в остальных версиях: удалённый активный адрес не подменяем молча
-  // следующим сохранённым — возвращаем в книгу для явного выбора. Если книга
-  // опустела совсем, показываем форму, как при первом входе.
+  // Удалённый активный адрес не подменяем молча следующим сохранённым. Книга
+  // остаётся на экране на способе удалённого адреса: если в нём ничего не
+  // осталось, там стоит информер с кнопкой добавления, а не пустая страница
+  // под окном. Если книга опустела совсем, под ней уже готова форма нового
+  // адреса, как при первом входе.
+  bookMethod.value = removed?.method
+
   if (entries.value.length === 0) {
     openNewForm()
-  } else {
-    isBookOpen.value = true
   }
+
+  isBookOpen.value = true
 }
+
+/**
+ * Адреса есть, но ни один не выбран — например, выбранный удалили и книгу
+ * закрыли, ничего не выбрав. Пустая форма здесь врала бы, что сохранённых
+ * адресов нет.
+ */
+const isSelectionMissing = computed(
+  () => mode.value === 'summary' && !selectedEntry.value && entries.value.length > 0,
+)
 </script>
 
 <template>
@@ -418,6 +438,14 @@ function onEntryDelete(id: string) {
       </div>
     </template>
 
+    <div v-else-if="isSelectionMissing" class="cc3-combined-delivery__missing">
+      <p class="cc3-combined-delivery__missing-text">{{ text.pickAddress }}</p>
+
+      <button type="button" class="cc3-combined-delivery__missing-action" @click="openBook">
+        {{ text.bookTitle }}
+      </button>
+    </div>
+
     <Cc3CombinedAddressForm v-else :key="formKey" @change="onFormChange" />
 
     <Cc3CombinedAddressEditDialog
@@ -432,7 +460,7 @@ function onEntryDelete(id: string) {
       v-if="isBookOpen"
       :entries="entries"
       :selected-id="selectedEntryId"
-      :method="activeMethod"
+      :method="bookMethod ?? activeMethod"
       @close="isBookOpen = false"
       @select="onSelectEntry"
       @edit="onEditEntry"
@@ -490,6 +518,46 @@ function onEntryDelete(id: string) {
     border: none;
     cursor: pointer;
     transform: translateX(var(--st-global-distance-space-inset-md));
+  }
+
+  // Адреса есть, но ни один не выбран: информер и кнопка, которая открывает
+  // книгу, вместо пустой формы.
+  &__missing {
+    display: flex;
+    flex-direction: column;
+    gap: var(--st-global-distance-space-inset-xl);
+
+    margin: var(--st-global-distance-space-inset-md) var(--st-global-distance-space-inset-2xl) 0;
+  }
+
+  &__missing-text {
+    margin: 0;
+    padding: var(--st-global-distance-space-inset-2xl);
+
+    @include font('body-md');
+
+    color: var(--st-content-foreground-color-neutral-primary);
+    background-color: var(--st-content-background-color-neutral-subtle);
+    border-radius: var(--st-global-radius-md);
+  }
+
+  &__missing-action {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    padding: var(--st-global-distance-space-inset-xl);
+    width: 100%;
+
+    font-family: inherit;
+
+    @include font('label-md');
+
+    color: var(--st-action-foreground-color-onprimary-normal);
+    background-color: var(--st-action-background-color-positive-normal);
+    border: none;
+    border-radius: var(--st-global-radius-pill);
+    cursor: pointer;
   }
 
   // Строки карточки стоят в общем контейнере: 8px под заголовком задаёт он, а

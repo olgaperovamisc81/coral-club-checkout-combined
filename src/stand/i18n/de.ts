@@ -56,6 +56,7 @@ export default {
   'combined.homeDelivery': 'Lieferung nach Hause',
   'combined.shipTo': 'Lieferung an',
   'combined.bookTitle': 'Gespeicherte Adressen',
+  'combined.pickAddress': 'Keine Adresse ausgewählt. Wählen Sie eine gespeicherte Adresse oder fügen Sie eine neue hinzu.',
 
   // Lieferung und Abholstellen
   'delivery.method.courier': 'Kurier',
