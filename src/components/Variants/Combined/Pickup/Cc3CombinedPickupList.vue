@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, ref } from 'vue'
 
 import { useStand } from '@/stand/composables/useStand'
 import type { AddressSuggestion } from '@/stand/suggest'
@@ -46,6 +46,10 @@ const emit = defineEmits<{
 
 const { t } = useStand()
 
+// Пока человек ищет адрес, ряд чипсов не нужен: он встаёт между подсказками и
+// результатами и читается как лишний слой. Вернётся, как только поиск закончен.
+const isSearching = ref(false)
+
 const text = computed(() => ({
   openUntil: t('pickup.openUntil'),
   closedNow: t('pickup.closedNow'),
@@ -54,9 +58,14 @@ const text = computed(() => ({
 
 <template>
   <div class="cc3-combined-pickup-list">
-    <Cc3CombinedPickupListSearch :address="address" @pick="emit('pick', $event)" @clear="emit('clear')" />
+    <Cc3CombinedPickupListSearch
+      :address="address"
+      @pick="emit('pick', $event)"
+      @clear="emit('clear')"
+      @active="isSearching = $event"
+    />
 
-    <Cc3CombinedPickupFilters :filters="filters" @select="emit('filter', $event)" />
+    <Cc3CombinedPickupFilters v-if="!isSearching" :filters="filters" @select="emit('filter', $event)" />
 
     <Cc3CombinedNotice
       v-if="notice"

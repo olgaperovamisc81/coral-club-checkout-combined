@@ -25,6 +25,8 @@ const props = defineProps<{
 const emit = defineEmits<{
   pick: [suggestion: AddressSuggestion]
   clear: []
+  /** Человек работает с полем: список прячет чипсы, пока он ищет адрес. */
+  active: [value: boolean]
 }>()
 
 const { t } = useStand()
@@ -51,6 +53,10 @@ watch(
   },
 )
 
+function setActive(value: boolean) {
+  emit('active', value)
+}
+
 function onInput(value: string) {
   query.value = value
   isOpen.value = true
@@ -62,11 +68,13 @@ function onInput(value: string) {
 function onFocusOut(event: FocusEvent) {
   if (!rootRef.value?.contains(event.relatedTarget as Node | null)) {
     isOpen.value = false
+    setActive(false)
   }
 }
 
 function onPick(suggestion: AddressSuggestion) {
   isOpen.value = false
+  setActive(false)
   reset()
   emit('pick', suggestion)
 }
@@ -74,6 +82,7 @@ function onPick(suggestion: AddressSuggestion) {
 function onClear() {
   query.value = ''
   isOpen.value = false
+  setActive(false)
   reset()
   emit('clear')
 }
@@ -127,6 +136,7 @@ const isDropdownVisible = computed(() => isOpen.value && (rows.value.length > 0 
   <div
     ref="rootRef"
     class="cc3-combined-pickup-list-search"
+    @focusin="setActive(true)"
     @focusout="onFocusOut"
     @keydown.enter.prevent="onEnter"
   >
