@@ -10,6 +10,8 @@ const { t } = useStand()
 const text = computed(() => ({
   zoomIn: t('common.zoomIn'),
   zoomOut: t('common.zoomOut'),
+  error: t('map.error'),
+  retry: t('map.retry'),
 }))
 
 type Props = {
@@ -108,6 +110,25 @@ function worldYToLat(y: number, z: number): number {
 const originX = computed(() => lngToWorldX(center.value.lng, zoom.value) - width.value / 2)
 const originY = computed(() => latToWorldY(center.value.lat, zoom.value) - props.height / 2)
 
+// Плитки не загрузились. Если ни одна из первых не пришла, карта — серое поле,
+// и человеку нужно объяснение и повтор, а не тишина. Хотя бы одна загруженная
+// плитка значит, что карта работает, а пропуски — случайность сети.
+const tileState = ref({ loaded: 0, failed: 0 })
+const retryNonce = ref(0)
+
+function onTileLoad() {
+  tileState.value.loaded += 1
+}
+
+function onTileError() {
+  tileState.value.failed += 1
+}
+
+function retryTiles() {
+  tileState.value = { loaded: 0, failed: 0 }
+  retryNonce.value += 1
+}
+
 const tiles = computed(() => {
   if (width.value === 0) {
     return []
@@ -131,11 +152,11 @@ const tiles = computed(() => {
       const wrappedX = ((x % count) + count) % count
 
       list.push({
-        key: `${z}-${x}-${y}`,
+        key: `${z}-${x}-${y}-${retryNonce.value}`,
         url: props.tileUrl
           .replace('{z}', String(z))
           .replace('{x}', String(wrappedX))
-          .replace('{y}', String(y)),
+          .replace('{y}', String(y)) + (retryNonce.value ? `?retry=${retryNonce.value}` : ''),
         left: x * TILE_SIZE - originX.value,
         top: y * TILE_SIZE - originY.value,
       })
@@ -144,6 +165,13 @@ const tiles = computed(() => {
 
   return list
 })
+
+const isTilesFailed = computed(
+  () =>
+    tiles.value.length > 0 &&
+    tileState.value.loaded === 0 &&
+    tileState.value.failed >= Math.min(tiles.value.length, 3),
+)
 
 const markerPositions = computed(() =>
   props.markers.map((marker) => ({
@@ -358,6 +386,8 @@ onBeforeUnmount(() => {
       :style="{ left: `${tile.left}px`, top: `${tile.top}px` }"
       alt=""
       draggable="false"
+      @load="onTileLoad"
+      @error="onTileError"
     />
 
     <div
@@ -391,6 +421,14 @@ onBeforeUnmount(() => {
         @click="changeZoom(-1)"
       >
         −
+      </button>
+    </div>
+
+    <div v-if="isTilesFailed" class="cc3-map__error" role="alert" @pointerdown.stop>
+      <p class="cc3-map__error-text">{{ text.error }}</p>
+
+      <button type="button" class="cc3-map__error-retry" @click="retryTiles">
+        {{ text.retry }}
       </button>
     </div>
 
@@ -463,6 +501,49 @@ onBeforeUnmount(() => {
       color: var(--st-content-foreground-color-neutral-tetriary);
       cursor: not-allowed;
     }
+  }
+
+  // Карта не загрузилась: плашка по центру с объяснением и повтором.
+  &__error {
+    position: absolute;
+    inset-block-start: 50%;
+    inset-inline: var(--st-global-distance-space-inset-2xl);
+    z-index: 3;
+
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--st-global-distance-space-inset-md);
+
+    padding: var(--st-global-distance-space-inset-2xl);
+
+    background-color: var(--st-content-background-color-default-solid-normal);
+    border-radius: var(--st-global-radius-md);
+    box-shadow: 0 4px 16px 0 rgb(4 8 13 / 14%);
+    transform: translateY(-50%);
+  }
+
+  &__error-text {
+    margin: 0;
+
+    @include font('body-md');
+
+    color: var(--st-content-foreground-color-neutral-primary);
+    text-align: center;
+  }
+
+  &__error-retry {
+    padding: var(--st-global-distance-space-inset-md) var(--st-global-distance-space-inset-2xl);
+
+    font-family: inherit;
+
+    @include font('label-md');
+
+    color: var(--st-action-foreground-color-onprimary-normal);
+    background-color: var(--st-action-background-color-positive-normal);
+    border: none;
+    border-radius: var(--st-global-radius-pill);
+    cursor: pointer;
   }
 
   &__attribution {

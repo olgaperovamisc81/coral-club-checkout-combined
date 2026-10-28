@@ -38,12 +38,32 @@ const text = computed(() => ({
   close: t('common.close'),
   placeholder: t('concept.common.findAddress'),
   continue: t('common.continue'),
+  geocodeError: t('map.geocodeError'),
+  selectError: t('map.selectError'),
 }))
 
 const label = ref(props.query)
 const suggestion = ref<AddressSuggestion>()
 const point = ref<MapPoint | undefined>(props.point)
 const isSearchOpen = ref(false)
+// Геокодер не определил адрес под меткой: метка сдвинута, а подпись прежняя.
+// Пока человек не передвинет метку заново или не найдёт адрес поиском,
+// «Продолжить» неактивна — иначе окно закрылось бы с адресом другого места.
+const isGeocodeFailed = ref(false)
+
+const canContinue = computed(() => !isGeocodeFailed.value && Boolean(label.value.trim()))
+
+// «Продолжить» не отключается молча: по нажатию без выбранного адреса окно
+// объясняет, что нужно сделать.
+const isContinueTried = ref(false)
+
+const errorText = computed(() => {
+  if (isGeocodeFailed.value) {
+    return text.value.geocodeError
+  }
+
+  return isContinueTried.value && !label.value.trim() ? text.value.selectError : ''
+})
 
 const center = computed<MapPoint>(() => point.value ?? mapCenter.value)
 
@@ -60,11 +80,20 @@ async function onMapMove(next: MapPoint) {
   reverseController?.abort()
   reverseController = new AbortController()
 
-  const found = await reverseAddress(next, country.value, reverseController.signal)
+  const controller = reverseController
+  const found = await reverseAddress(next, country.value, controller.signal)
+
+  // Новый тычок отменил этот запрос — ответ нужен уже ему, а не нам.
+  if (controller.signal.aborted) {
+    return
+  }
 
   if (found) {
     suggestion.value = found
     label.value = found.label
+    isGeocodeFailed.value = false
+  } else {
+    isGeocodeFailed.value = true
   }
 }
 
@@ -76,16 +105,24 @@ function onPick(picked: AddressSuggestion) {
     point.value = { lat: picked.lat, lng: picked.lng }
   }
 
+  isGeocodeFailed.value = false
   isSearchOpen.value = false
 }
 
 function onSubmitQuery(query: string) {
   suggestion.value = undefined
   label.value = query
+  isGeocodeFailed.value = false
   isSearchOpen.value = false
 }
 
 function confirm() {
+  if (!canContinue.value) {
+    isContinueTried.value = true
+
+    return
+  }
+
   emit('confirm', { suggestion: suggestion.value, query: label.value })
 }
 
@@ -199,6 +236,10 @@ function onKeydown(event: KeyboardEvent) {
         </div>
 
         <div class="cc3-combined-map-dialog__controls">
+          <p v-if="errorText" class="cc3-combined-map-dialog__error" role="alert">
+            {{ errorText }}
+          </p>
+
           <button
             type="button"
             class="cc3-combined-map-dialog__search"
@@ -358,6 +399,14 @@ function onKeydown(event: KeyboardEvent) {
 
     padding: var(--st-global-distance-space-inset-xl) var(--st-global-distance-space-inset-2xl)
       var(--st-global-distance-space-inset-2xl);
+  }
+
+  &__error {
+    margin: 0;
+
+    @include font('body-sm');
+
+    color: var(--st-content-foreground-color-negative-primary);
   }
 
   &__search {

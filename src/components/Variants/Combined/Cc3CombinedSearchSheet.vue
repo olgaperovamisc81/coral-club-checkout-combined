@@ -33,6 +33,7 @@ const text = computed(() => ({
   placeholder: t('concept.common.findAddress'),
   loading: t('suggest.loading'),
   empty: t('suggest.empty'),
+  error: t('suggest.error'),
 }))
 
 const query = ref(props.initialQuery)
@@ -80,7 +81,8 @@ function onEnter() {
 
 const note = computed(() => {
   if (status.value === 'loading') return text.value.loading
-  if (status.value === 'empty' || status.value === 'error') return text.value.empty
+  if (status.value === 'empty') return text.value.empty
+  if (status.value === 'error') return text.value.error
 
   return ''
 })
