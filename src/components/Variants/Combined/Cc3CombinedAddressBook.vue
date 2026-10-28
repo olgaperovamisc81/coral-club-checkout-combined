@@ -20,6 +20,11 @@ import type { DeliveryProfile, DeliveryProfileMethod } from '../Modal/deliveryPr
  * есть только в одном, свитчер сам переходит на него, а если в обоих —
  * остаётся как есть.
  *
+ * Выбор слушает click, а не change: у уже выбранной строки change не
+ * приходит, и нажатие на неё ничего бы не делало. Книга без кнопки
+ * «Продолжить» закрывается самим выбором — в том числе повторным, как если бы
+ * человек закрыл окно, ничего не меняя.
+ *
  * «Изменить адрес» стоит вне label: иначе label свяжется с первой кнопкой
  * в строке, и клик по названию или адресу открывал бы редактирование вместо
  * выбора.
@@ -197,7 +202,7 @@ function onKeydown(event: KeyboardEvent) {
                   name="cc3-combined-address-book"
                   class="cc3-combined-address-book__radio"
                   :checked="entry.id === selectedId"
-                  @change="emit('select', entry.id)"
+                  @click="emit('select', entry.id)"
                 />
               </label>
 
