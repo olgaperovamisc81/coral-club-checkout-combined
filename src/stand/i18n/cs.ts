@@ -57,6 +57,7 @@ export default {
   'combined.shipTo': 'Doručit na',
   'combined.bookTitle': 'Uložené adresy',
   'combined.pickAddress': 'Není vybrána žádná adresa. Vyberte uloženou nebo přidejte novou.',
+  'combined.fieldRequired': 'Vyplňte toto pole',
 
   // Doručení a výdejní místa
   'delivery.method.courier': 'Kurýr',

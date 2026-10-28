@@ -1,10 +1,11 @@
 <script setup lang="ts">
-import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
+import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 
 import Cc3Icon from '@/components/Icon/Cc3Icon.vue'
 import type { MapPoint } from '@/components/Map/mapTypes'
 import { useCheckout, type PickupProvider } from '@/composables/useCheckout'
 import { useStand } from '@/stand/composables/useStand'
+import { useStandFields } from '@/stand/composables/useStandFields'
 import { useStandProfile } from '@/stand/composables/useStandProfile'
 import { pickupCardLines } from '@/stand/config/pickupCard'
 import type { FieldKey } from '@/stand/config/types'
@@ -210,13 +211,24 @@ watch(country, () => {
   recipientValues.value = seedRecipient()
 })
 
-const recipientName = computed(
-  () =>
-    recipientValues.value.recipientName?.trim() ||
-    [recipientValues.value.recipientFirstName, recipientValues.value.recipientLastName]
-      .filter(Boolean)
-      .join(' '),
-)
+const { fields: recipientFields } = useStandFields('recipient')
+
+/**
+ * Имя получателя — из тех полей, которые человек видит (см. форму адреса).
+ * Запасное значение из скрытых полей возвращало бы стёртое имя прежним.
+ */
+const recipientName = computed(() => {
+  const values = recipientValues.value
+
+  if (recipientFields.value.some((field) => field.key === 'recipientName')) {
+    return (values.recipientName ?? '').trim()
+  }
+
+  return [values.recipientFirstName, values.recipientLastName]
+    .map((part) => (part ?? '').trim())
+    .filter(Boolean)
+    .join(' ')
+})
 
 const sheet = computed(() => {
   const point = activePoint.value
@@ -315,10 +327,39 @@ function backToPicker() {
   view.value = 'map'
 }
 
+// Обязательные поля получателя, оставленные пустыми. Пустое значение — ошибка,
+// а не повод подставить прежнее: стёртое имя не должно возвращаться.
+const isSubmitAttempted = ref(false)
+
+const missingRecipientKeys = computed(() =>
+  recipientFields.value
+    .filter((field) => field.required && !(recipientValues.value[field.key] ?? '').trim())
+    .map((field) => field.key),
+)
+
+const invalidRecipientKeys = computed(() =>
+  isSubmitAttempted.value ? missingRecipientKeys.value : [],
+)
+
 function confirm() {
   const detail = detailView.value
 
   if (!detail) {
+    return
+  }
+
+  if (missingRecipientKeys.value.length > 0) {
+    isSubmitAttempted.value = true
+
+    // Первое пустое поле получает фокус, чтобы не искать, где ошибка.
+    void nextTick(() =>
+      document
+        .querySelector<HTMLInputElement>(
+          '.cc3-combined-pickup-detail .cc3-stand-field--invalid input',
+        )
+        ?.focus(),
+    )
+
     return
   }
 
@@ -463,6 +504,7 @@ function onKeydown(event: KeyboardEvent) {
           v-else-if="detailView"
           v-model="recipientValues"
           :detail="detailView"
+          :invalid-keys="invalidRecipientKeys"
           @back="backToPicker"
         />
       </div>

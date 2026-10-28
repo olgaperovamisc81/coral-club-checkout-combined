@@ -23,6 +23,8 @@ type PickupDetail = {
 
 defineProps<{
   detail: PickupDetail
+  /** Поля получателя, которые нужно показать с ошибкой «Заполните это поле». */
+  invalidKeys?: FieldKey[]
 }>()
 
 defineEmits<{
@@ -42,6 +44,7 @@ const text = computed(() => ({
   directions: t('pickup.directions'),
   contacts: t('pickup.contacts'),
   recipientSection: t('group.recipient.title'),
+  required: t('combined.fieldRequired'),
 }))
 </script>
 
@@ -93,6 +96,8 @@ const text = computed(() => ({
         :key="field.key"
         v-model="recipientValues[field.key]"
         :field="field"
+        :invalid="invalidKeys?.includes(field.key)"
+        :error="text.required"
         floating
       />
     </div>

@@ -112,11 +112,22 @@ function onMapConfirm(payload: { suggestion?: AddressSuggestion; query: string }
   }
 }
 
-const recipientDisplayName = computed(
-  () =>
-    values.value.recipientName?.trim() ||
-    [values.value.recipientFirstName, values.value.recipientLastName].filter(Boolean).join(' '),
-)
+/**
+ * Имя получателя берётся из тех полей, которые человек видит: у России это
+ * одно поле, у остальных рынков — имя и фамилия. Скрытые поля другого вида
+ * подставляются из профиля при открытии формы, и если брать их запасным
+ * значением, стёртое в интерфейсе имя возвращалось бы старым.
+ */
+const recipientDisplayName = computed(() => {
+  if (recipientFields.value.some((field) => field.key === 'recipientName')) {
+    return (values.value.recipientName ?? '').trim()
+  }
+
+  return [values.value.recipientFirstName, values.value.recipientLastName]
+    .map((part) => (part ?? '').trim())
+    .filter(Boolean)
+    .join(' ')
+})
 
 /**
  * Адрес добавлен, когда заполнено всё обязательное — и адрес, и получатель.

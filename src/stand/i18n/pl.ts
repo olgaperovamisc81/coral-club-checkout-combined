@@ -57,6 +57,7 @@ export default {
   'combined.shipTo': 'Dostawa na adres',
   'combined.bookTitle': 'Zapisane adresy',
   'combined.pickAddress': 'Nie wybrano adresu. Wybierz zapisany lub dodaj nowy.',
+  'combined.fieldRequired': 'Uzupełnij to pole',
 
   // Dostawa i punkty odbioru
   'delivery.method.courier': 'Kurier',
