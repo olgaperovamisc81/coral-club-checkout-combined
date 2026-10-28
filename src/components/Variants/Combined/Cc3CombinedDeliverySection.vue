@@ -32,7 +32,9 @@ import Cc3CombinedPickupDialog from './Pickup/Cc3CombinedPickupDialog.vue'
  * самовывоза.
  */
 const emit = defineEmits<{
-  state: [payload: { method: DeliveryProfileMethod; profile?: DeliveryProfile }]
+  state: [
+    payload: { method: DeliveryProfileMethod; profile?: DeliveryProfile; recipientReady: boolean },
+  ]
 }>()
 
 const { savedAddressBookEntries, formatMoneyRounded } = useCheckout()
@@ -96,7 +98,10 @@ const sectionRef = ref<HTMLElement>()
 const formKey = ref(0)
 
 /** Что сейчас в форме и хватает ли в ней полей. */
-const draft = ref<{ profile?: DeliveryProfile; complete: boolean }>({ complete: false })
+const draft = ref<{ profile?: DeliveryProfile; complete: boolean; addressComplete: boolean }>({
+  complete: false,
+  addressComplete: false,
+})
 
 watch([country, user], () => {
   entries.value = toProfiles()
@@ -106,7 +111,7 @@ watch([country, user], () => {
   isPickupDialogOpen.value = false
   isEditDialogOpen.value = false
   lastSelectedIds.value = {}
-  draft.value = { complete: false }
+  draft.value = { complete: false, addressComplete: false }
   formKey.value += 1
   mode.value = selectedEntryId.value ? 'summary' : 'form'
 })
@@ -132,14 +137,28 @@ const activeMethod = computed<DeliveryProfileMethod>(() =>
 const currentProfile = computed(() =>
   mode.value === 'summary'
     ? selectedEntry.value
-    : draft.value.complete
+    : draft.value.addressComplete
       ? draft.value.profile
       : undefined,
 )
 
+/**
+ * Получатель заполнен. Адреса для этого не нужно: варианты доставки
+ * считаются по одному адресу и показываются, как только он заполнен, а
+ * получателя страница требует при оплате.
+ */
+const isRecipientReady = computed(() =>
+  mode.value === 'summary' ? Boolean(selectedEntry.value) : draft.value.complete,
+)
+
 watch(
-  [activeMethod, currentProfile],
-  () => emit('state', { method: activeMethod.value, profile: currentProfile.value }),
+  [activeMethod, currentProfile, isRecipientReady],
+  () =>
+    emit('state', {
+      method: activeMethod.value,
+      profile: currentProfile.value,
+      recipientReady: isRecipientReady.value,
+    }),
   { immediate: true },
 )
 
@@ -157,7 +176,19 @@ watch(
  * Попытка оплатить без адреса возвращает человека к блоку доставки: к
  * кнопке «Сохранить» её нет вовсе, адрес добавляется заполнением формы.
  */
-const { registerBlockAnchor } = useAddressGuard()
+const { registerBlockAnchor, registerSaveAnchor } = useAddressGuard()
+
+const formRef = ref<InstanceType<typeof Cc3CombinedAddressForm>>()
+
+// Пока на странице форма, оплата без заполненного получателя ведёт к ней:
+// форма показывает ошибки и фокусирует первое пустое поле. Без формы остаётся
+// запасной переход к началу блока.
+watch(
+  mode,
+  () =>
+    registerSaveAnchor(mode.value === 'form' ? () => formRef.value?.revealErrors() : undefined),
+  { immediate: true },
+)
 
 onMounted(() => {
   registerBlockAnchor(() => {
@@ -165,7 +196,10 @@ onMounted(() => {
   })
 })
 
-onBeforeUnmount(() => registerBlockAnchor(undefined))
+onBeforeUnmount(() => {
+  registerBlockAnchor(undefined)
+  registerSaveAnchor(undefined)
+})
 
 /**
  * Для курьера заголовок карточки — «Адрес»: слово «Курьер» уже стоит на
@@ -238,7 +272,7 @@ function lastEntryFor(method: DeliveryProfileMethod) {
 
 function openNewForm() {
   editingEntryId.value = undefined
-  draft.value = { complete: false }
+  draft.value = { complete: false, addressComplete: false }
   formKey.value += 1
   mode.value = 'form'
 }
@@ -282,7 +316,11 @@ function upsert(profile: DeliveryProfile) {
  * в книгу не попадает, а у уже сохранённого старые значения остаются, пока
  * поля не заполнят снова.
  */
-function onFormChange(payload: { profile: DeliveryProfile; complete: boolean }) {
+function onFormChange(payload: {
+  profile: DeliveryProfile
+  complete: boolean
+  addressComplete: boolean
+}) {
   draft.value = payload
 
   if (payload.complete) {
@@ -446,7 +484,7 @@ const isSelectionMissing = computed(
       </button>
     </div>
 
-    <Cc3CombinedAddressForm v-else :key="formKey" @change="onFormChange" />
+    <Cc3CombinedAddressForm v-else :key="formKey" ref="formRef" @change="onFormChange" />
 
     <Cc3CombinedAddressEditDialog
       v-if="isEditDialogOpen"

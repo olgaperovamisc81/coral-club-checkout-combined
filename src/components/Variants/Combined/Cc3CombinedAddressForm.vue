@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref, watch } from 'vue'
+import { computed, nextTick, ref, watch } from 'vue'
 
 import type { MapPoint } from '@/components/Map/mapTypes'
 import { useCourierVariants } from '@/composables/useCourierVariants'
@@ -31,7 +31,7 @@ const props = defineProps<{
 }>()
 
 const emit = defineEmits<{
-  change: [payload: { profile: DeliveryProfile; complete: boolean }]
+  change: [payload: { profile: DeliveryProfile; complete: boolean; addressComplete: boolean }]
 }>()
 
 const { t, country } = useStand()
@@ -42,6 +42,7 @@ const text = computed(() => ({
   addressSection: t('combined.shipTo'),
   recipientSection: t('group.recipient.title'),
   pickOnMap: t('address.mapShow'),
+  required: t('combined.fieldRequired'),
 }))
 
 const { fields: addressFields } = useStandFields('address')
@@ -129,15 +130,60 @@ const recipientDisplayName = computed(() => {
     .join(' ')
 })
 
+const isFilled = (key: FieldKey) => Boolean(values.value[key]?.trim())
+
 /**
- * Адрес добавлен, когда заполнено всё обязательное — и адрес, и получатель.
- * Состав обязательных полей приходит из конфига страны, а не из вёрстки.
+ * Адрес заполнен, когда есть все обязательные поля адреса. От этого зависят
+ * варианты доставки: им получатель не нужен, и показывать их можно, не
+ * дожидаясь имени, телефона и почты.
  */
-const isComplete = computed(() =>
-  [...addressFields.value, ...recipientFields.value]
-    .filter((field) => field.required)
-    .every((field) => Boolean(values.value[field.key]?.trim())),
+const isAddressComplete = computed(() =>
+  addressFields.value.filter((field) => field.required).every((field) => isFilled(field.key)),
 )
+
+/**
+ * Адрес добавлен в книгу, когда заполнено всё обязательное — и адрес, и
+ * получатель. Состав обязательных полей приходит из конфига страны, а не из
+ * вёрстки.
+ */
+const isComplete = computed(
+  () =>
+    isAddressComplete.value &&
+    recipientFields.value.filter((field) => field.required).every((field) => isFilled(field.key)),
+)
+
+// Обязательные поля, оставленные пустыми. Подсвечиваются после первой
+// попытки оплатить, а не сразу при загрузке: пустая форма не должна быть
+// красной.
+const isSubmitAttempted = ref(false)
+
+const missingKeys = computed(() =>
+  [...addressFields.value, ...recipientFields.value]
+    .filter((field) => field.required && !isFilled(field.key))
+    .map((field) => field.key),
+)
+
+const invalidKeys = computed(() => (isSubmitAttempted.value ? missingKeys.value : []))
+
+/**
+ * Показать ошибки и привести человека к первому пустому обязательному полю.
+ * Вызывает страница, когда оплату нажали с недозаполненной формой: адрес мы
+ * показываем и без получателя, а отсутствие получателя ловим здесь.
+ */
+function revealErrors() {
+  isSubmitAttempted.value = true
+
+  void nextTick(() => {
+    const first = document.querySelector<HTMLInputElement>(
+      '.cc3-combined-address-form .cc3-stand-field--invalid input, .cc3-combined-address-form .cc3-stand-field--invalid select',
+    )
+
+    first?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+    first?.focus({ preventScroll: true })
+  })
+}
+
+defineExpose({ revealErrors })
 
 // Один идентификатор на всю жизнь формы: новый адрес при каждом нажатии
 // клавиши давал бы новую карточку в книге.
@@ -161,8 +207,13 @@ const profile = computed<DeliveryProfile>(() => ({
 }))
 
 watch(
-  [profile, isComplete],
-  () => emit('change', { profile: profile.value, complete: isComplete.value }),
+  [profile, isComplete, isAddressComplete],
+  () =>
+    emit('change', {
+      profile: profile.value,
+      complete: isComplete.value,
+      addressComplete: isAddressComplete.value,
+    }),
   { immediate: true },
 )
 </script>
@@ -180,6 +231,8 @@ watch(
           <Cc3StandField
             v-model="values[field.key]"
             :field="field"
+            :invalid="invalidKeys.includes(field.key)"
+            :error="text.required"
             floating
             @select="onSuggestionSelect"
           />
@@ -193,7 +246,14 @@ watch(
           </button>
         </div>
 
-        <Cc3StandField v-else v-model="values[field.key]" :field="field" floating />
+        <Cc3StandField
+          v-else
+          v-model="values[field.key]"
+          :field="field"
+          :invalid="invalidKeys.includes(field.key)"
+          :error="text.required"
+          floating
+        />
       </template>
     </div>
 
@@ -205,6 +265,8 @@ watch(
         :key="field.key"
         v-model="values[field.key]"
         :field="field"
+        :invalid="invalidKeys.includes(field.key)"
+        :error="text.required"
         floating
       />
     </div>

@@ -36,8 +36,13 @@ const text = computed(() => ({
   optionsTitle: t('delivery.variants'),
 }))
 
-const state = ref<{ method: DeliveryProfileMethod; profile?: DeliveryProfile }>({
+const state = ref<{
+  method: DeliveryProfileMethod
+  profile?: DeliveryProfile
+  recipientReady: boolean
+}>({
   method: 'courier',
+  recipientReady: false,
 })
 
 const { armGuard, disarmGuard, setAddressSaved } = useAddressGuard()
@@ -46,14 +51,18 @@ const { armGuard, disarmGuard, setAddressSaved } = useAddressGuard()
 // родителя. Поэтому после взвода сторожа сразу пересказываем ему, что уже есть.
 onMounted(() => {
   armGuard()
-  setAddressSaved(Boolean(state.value.profile))
+  setAddressSaved(Boolean(state.value.profile) && state.value.recipientReady)
 })
 
 onBeforeUnmount(disarmGuard)
 
-function onState(payload: { method: DeliveryProfileMethod; profile?: DeliveryProfile }) {
+function onState(payload: {
+  method: DeliveryProfileMethod
+  profile?: DeliveryProfile
+  recipientReady: boolean
+}) {
   state.value = payload
-  setAddressSaved(Boolean(payload.profile))
+  setAddressSaved(Boolean(payload.profile) && payload.recipientReady)
 }
 
 /**
