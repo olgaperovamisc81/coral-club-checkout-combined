@@ -22,6 +22,13 @@ import { useFieldErrors } from './useFieldErrors'
  * форма сама сообщает об этом наверх при каждом изменении. Пока полей не
  * хватает, ниже висит плашка «Укажите адрес…» вместо способов доставки.
  *
+ * Новая форма начинается с одной строки адреса: остальные поля адреса
+ * раскрываются, как только человек с ней поработал — выбрал подсказку или
+ * точку на карте, ушёл из поля (написав адрес руками или оставив пустым) или
+ * нажал оплату. Так форма не пугает числом полей, а состав раскрытых по-прежнему
+ * задаёт конфиг страны. Форма, открытая на правку сохранённого адреса, сразу
+ * полная. Блок получателя виден всегда.
+ *
  * Подписи лежат внутри полей и уходят наверх при вводе. Под строкой адреса
  * стоит ссылка «Выбрать на карте» — она открывает окно с картой, из которого
  * адрес возвращается в форму.
@@ -55,6 +62,23 @@ const renderedAddressFields = computed(() =>
 )
 
 const values = ref<Partial<Record<FieldKey, string>>>({})
+
+// Свёрнутая форма — только строка адреса; раскрытая показывает все поля адреса
+// страны. Правка сохранённого адреса раскрыта сразу.
+const isExpanded = ref(Boolean(props.editProfile))
+
+// Анимация появления нужна только при раскрытии, а не при первой отрисовке
+// уже полной формы (правка адреса): там поля стоят сразу.
+const isRevealAnimated = ref(false)
+
+function expand() {
+  if (isExpanded.value) {
+    return
+  }
+
+  isExpanded.value = true
+  isRevealAnimated.value = true
+}
 const mapPoint = ref<MapPoint>()
 const isMapOpen = ref(false)
 
@@ -87,9 +111,16 @@ function seedValues() {
 
 seedValues()
 
-watch(country, seedValues)
+// Смена страны очищает адрес — форма снова начинается с одной строки.
+watch(country, () => {
+  seedValues()
+  isExpanded.value = Boolean(props.editProfile)
+  isRevealAnimated.value = false
+})
 
 function onSuggestionSelect(suggestion: AddressSuggestion) {
+  expand()
+
   values.value = applySuggestion(
     values.value,
     'street',
@@ -103,8 +134,17 @@ function onSuggestionSelect(suggestion: AddressSuggestion) {
   }
 }
 
+// Уход из строки адреса — это и есть «поработал с полем»: что бы в ней ни
+// было, остальные поля раскрываются. Выбор подсказки ловится на mousedown и
+// фокус не уводит, так что раскрытие не мешает выбору.
+function onAddressFocusout(key: FieldKey) {
+  touch(key)
+  expand()
+}
+
 function onMapConfirm(payload: { suggestion?: AddressSuggestion; query: string }) {
   isMapOpen.value = false
+  expand()
 
   if (payload.suggestion) {
     onSuggestionSelect(payload.suggestion)
@@ -133,6 +173,14 @@ const recipientDisplayName = computed(() => {
 // Проверка всех полей формы: что не так и когда это показать. Пустое
 // обязательное поле и неверный формат (индекс, телефон, почта) — ошибки, а
 // не повод пропустить адрес дальше.
+// Что показываем сейчас: свёрнутая форма — одна строка с подсказками. Для
+// проверки и сообщения о готовности адреса остаются все поля страны.
+const visibleAddressFields = computed(() =>
+  isExpanded.value
+    ? renderedAddressFields.value
+    : renderedAddressFields.value.filter((field) => field.type === 'autocomplete'),
+)
+
 const allFields = computed(() => [...renderedAddressFields.value, ...recipientFields.value])
 const { messages, visible, isValid, touch, reveal } = useFieldErrors(allFields, values)
 
@@ -157,6 +205,7 @@ const isComplete = isValid
  * показываем и без получателя, а недостающее ловим здесь.
  */
 function revealErrors() {
+  expand()
   reveal()
 
   void nextTick(() => {
@@ -209,7 +258,7 @@ watch(
     <h3 class="cc3-combined-address-form__title">{{ text.addressSection }}</h3>
 
     <div class="cc3-combined-address-form__fields">
-      <template v-for="field in renderedAddressFields" :key="field.key">
+      <template v-for="field in visibleAddressFields" :key="field.key">
         <div
           v-if="field.type === 'autocomplete'"
           class="cc3-combined-address-form__search"
@@ -221,7 +270,7 @@ watch(
             :error="visible[field.key]"
             floating
             @select="onSuggestionSelect"
-            @focusout="touch(field.key)"
+            @focusout="onAddressFocusout(field.key)"
           />
 
           <button
@@ -237,6 +286,7 @@ watch(
           v-else
           v-model="values[field.key]"
           :field="field"
+          :class="{ 'cc3-combined-address-form__reveal': isRevealAnimated }"
           :invalid="Boolean(visible[field.key])"
           :error="visible[field.key]"
           floating
@@ -307,6 +357,16 @@ watch(
     }
   }
 
+  // Раскрытые поля появляются плавно, а не рывком: человек видит, откуда они
+  // взялись. Тем, кто просит меньше движения, анимация не нужна.
+  &__reveal {
+    animation: cc3-combined-address-reveal 0.24s ease-out;
+
+    @media (prefers-reduced-motion: reduce) {
+      animation: none;
+    }
+  }
+
   // Ссылка прижата к строке адреса: поле держит собственный нижний отступ,
   // и здесь он меньше обычного.
   &__search {
@@ -330,6 +390,18 @@ watch(
     background: none;
     border: none;
     cursor: pointer;
+  }
+}
+
+@keyframes cc3-combined-address-reveal {
+  from {
+    opacity: 0;
+    transform: translateY(calc(-1 * var(--st-global-distance-space-inset-md)));
+  }
+
+  to {
+    opacity: 1;
+    transform: none;
   }
 }
 </style>
