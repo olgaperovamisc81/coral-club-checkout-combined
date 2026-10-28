@@ -18,6 +18,7 @@ import Cc3CombinedPickupDetail from './Cc3CombinedPickupDetail.vue'
 import Cc3CombinedPickupFilters from './Cc3CombinedPickupFilters.vue'
 import Cc3CombinedPickupList from './Cc3CombinedPickupList.vue'
 import Cc3CombinedPickupMap from './Cc3CombinedPickupMap.vue'
+import Cc3CombinedPickupSearchField from './Cc3CombinedPickupSearchField.vue'
 import Cc3CombinedPickupSheet from './Cc3CombinedPickupSheet.vue'
 import Cc3CombinedPickupSwitch from './Cc3CombinedPickupSwitch.vue'
 
@@ -457,12 +458,14 @@ function onKeydown(event: KeyboardEvent) {
               <Cc3CombinedPickupSwitch
                 class="cc3-combined-pickup-dialog__switch cc3-combined-pickup-dialog__switch--floating"
                 :view="view"
-                searchable
                 @select="view = $event"
-                @search="isSearchOpen = true"
               />
 
               <Cc3CombinedPickupFilters floating :filters="providerFilters" @select="onFilter" />
+            </div>
+
+            <div class="cc3-combined-pickup-dialog__searchbar">
+              <Cc3CombinedPickupSearchField :address="address" @open="isSearchOpen = true" />
             </div>
           </template>
 
@@ -630,6 +633,15 @@ function onKeydown(event: KeyboardEvent) {
     flex: 1;
 
     min-height: 0;
+  }
+
+  // Строка поиска под картой на белой полосе: карта до неё, а не под ней.
+  &__searchbar {
+    flex-shrink: 0;
+
+    padding: var(--st-global-distance-space-inset-2xl);
+
+    background-color: var(--st-content-background-color-default-solid-normal);
   }
 
   // В списке ряд «Карта / Список» стоит обычной строкой над полем адреса.
