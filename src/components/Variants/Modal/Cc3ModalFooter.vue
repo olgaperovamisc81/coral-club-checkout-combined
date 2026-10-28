@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, nextTick, ref, watch } from 'vue'
 import coralclubLogoFooter from '@/assets/modal/coralclub-logo-footer.svg'
 import socialVk from '@/assets/modal/social-vk.svg'
 import Cc3Icon from '@/components/Icon/Cc3Icon.vue'
@@ -7,6 +7,15 @@ import { useAddressGuard } from '@/composables/useAddressGuard'
 import { useCheckout } from '@/composables/useCheckout'
 import { useStand } from '@/stand/composables/useStand'
 import { useStandOrder } from '@/stand/composables/useStandOrder'
+
+/**
+ * Комбинированная версия не гасит кнопку молча: без принятых условий она
+ * остаётся активной, а нажатие объясняет причину под галочкой. Остальные
+ * версии ведут себя как раньше.
+ */
+const props = defineProps<{
+  explainBlocked?: boolean
+}>()
 
 const { t } = useStand()
 
@@ -22,6 +31,7 @@ const text = computed(() => ({
   privacy: t('consent.privacy'),
   and: t('consent.and'),
   terms: t('consent.terms'),
+  required: t('consent.required'),
   submit: t('submit.button'),
   copyright: t('footer.copyright'),
   language: `${t(`country.${country.value}`)} | ${locale.value.toUpperCase()}`,
@@ -37,7 +47,25 @@ const { acceptMarketing, acceptTerms, isReady } = useCheckout()
  */
 const { ensureAddressSaved } = useAddressGuard()
 
+const isTermsErrorShown = ref(false)
+const termsRef = ref<HTMLElement>()
+
+// Условия приняли — ошибка уходит сама, нажимать ещё раз не нужно.
+watch(acceptTerms, (accepted) => {
+  if (accepted) {
+    isTermsErrorShown.value = false
+  }
+})
+
 function submit() {
+  if (props.explainBlocked && !acceptTerms.value) {
+    isTermsErrorShown.value = true
+
+    void nextTick(() => termsRef.value?.scrollIntoView({ behavior: 'smooth', block: 'center' }))
+
+    return
+  }
+
   if (!ensureAddressSaved()) {
     return
   }
@@ -56,20 +84,24 @@ function submit() {
         <input v-model="acceptMarketing" type="checkbox" class="cc3-modal-footer__checkbox" />
       </label>
 
-      <label class="cc3-modal-footer__cell">
+      <label ref="termsRef" class="cc3-modal-footer__cell">
         <span class="cc3-modal-footer__cell-text">
           {{ text.prefix }} <a href="#">{{ text.privacy }}</a> {{ text.and }}
           <a href="#">{{ text.terms }}</a>.
         </span>
         <input v-model="acceptTerms" type="checkbox" class="cc3-modal-footer__checkbox" />
       </label>
+
+      <p v-if="isTermsErrorShown" class="cc3-modal-footer__error" role="alert">
+        {{ text.required }}
+      </p>
     </div>
 
     <div class="cc3-modal-footer__cta-wrap">
       <button
         type="button"
         class="cc3-modal-footer__cta"
-        :disabled="!isReady"
+        :disabled="!isReady && !explainBlocked"
         @click="submit"
       >
         {{ text.submit }}
@@ -128,6 +160,15 @@ function submit() {
     a {
       color: inherit;
     }
+  }
+
+  &__error {
+    margin: 0;
+    padding-block-end: var(--st-global-distance-space-inset-xl);
+
+    @include font('body-sm');
+
+    color: var(--st-content-foreground-color-negative-primary);
   }
 
   &__checkbox {

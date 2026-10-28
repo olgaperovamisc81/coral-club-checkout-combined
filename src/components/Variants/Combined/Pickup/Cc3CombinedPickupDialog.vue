@@ -13,6 +13,7 @@ import type { AddressSuggestion } from '@/stand/suggest'
 
 import Cc3ModalConfirmDialog from '../../Modal/Cc3ModalConfirmDialog.vue'
 import type { DeliveryProfile } from '../../Modal/deliveryProfile'
+import Cc3CombinedNotice from '../Cc3CombinedNotice.vue'
 import Cc3CombinedSearchSheet from '../Cc3CombinedSearchSheet.vue'
 import Cc3CombinedPickupDetail from './Cc3CombinedPickupDetail.vue'
 import Cc3CombinedPickupFilters from './Cc3CombinedPickupFilters.vue'
@@ -60,6 +61,8 @@ const text = computed(() => ({
   continue: t('common.continue'),
   save: t('combined.saveChanges'),
   remove: t('common.delete'),
+  deleteConfirm: t('combined.deleteConfirm'),
+  keep: t('combined.keep'),
 }))
 
 type Step = 'picker' | 'detail'
@@ -97,6 +100,33 @@ const points = computed(() => {
   }
 
   return list
+})
+
+/**
+ * Пункты дальше этого расстояния от найденного адреса считаются «не рядом»:
+ * карта всё равно покажет ближайшие, но человек должен узнать, что до них ехать.
+ */
+const NEARBY_KM = 15
+
+/**
+ * Пояснение над полем адреса. Пустой список — отдельный случай (службы, не
+ * работающие в стране); найденный адрес без пунктов поблизости — другой: карта
+ * приведёт к ближайшему, а плашка скажет, насколько он далеко.
+ */
+const nearbyNotice = computed(() => {
+  const focus = focusPoint.value
+
+  if (points.value.length === 0) {
+    return t('pickup.empty')
+  }
+
+  if (!focus) {
+    return ''
+  }
+
+  const nearest = distanceKm(focus, points.value[0])
+
+  return nearest > NEARBY_KM ? t('pickup.far', { km: Math.round(nearest) }) : ''
 })
 
 // Выбранный пункт, выпавший из списка после смены фильтра, больше не выбран.
@@ -446,6 +476,14 @@ function onKeydown(event: KeyboardEvent) {
             </div>
 
             <div class="cc3-combined-pickup-dialog__searchbar">
+              <Cc3CombinedNotice
+                v-if="nearbyNotice"
+                tone="warning"
+                class="cc3-combined-pickup-dialog__notice"
+              >
+                {{ nearbyNotice }}
+              </Cc3CombinedNotice>
+
               <Cc3CombinedPickupSearchField :address="address" @open="isSearchOpen = true" />
             </div>
           </template>
@@ -462,6 +500,7 @@ function onKeydown(event: KeyboardEvent) {
               :filters="providerFilters"
               :selected-id="selectedId"
               :address="address"
+              :notice="nearbyNotice"
               @select="onListPick"
               @filter="onFilter"
               @search="isSearchOpen = true"
@@ -512,7 +551,10 @@ function onKeydown(event: KeyboardEvent) {
 
   <Cc3ModalConfirmDialog
     v-if="isDeleteConfirmOpen"
-    message="Do you want to delete this address?"
+    :message="text.deleteConfirm"
+    :cancel-label="text.keep"
+    :confirm-label="text.remove"
+    destructive
     @confirm="deleteProfile"
     @cancel="isDeleteConfirmOpen = false"
   />
@@ -623,6 +665,10 @@ function onKeydown(event: KeyboardEvent) {
     padding: var(--st-global-distance-space-inset-2xl);
 
     background-color: var(--st-content-background-color-default-solid-normal);
+  }
+
+  &__notice {
+    margin-block-end: var(--st-global-distance-space-inset-xl);
   }
 
   // В списке ряд «Карта / Список» стоит обычной строкой над полем адреса.

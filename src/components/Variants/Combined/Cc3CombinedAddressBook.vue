@@ -5,6 +5,7 @@ import Cc3InputField from '@/components/Field/Cc3InputField.vue'
 import Cc3Icon from '@/components/Icon/Cc3Icon.vue'
 import { useStand } from '@/stand/composables/useStand'
 
+import Cc3CombinedNotice from './Cc3CombinedNotice.vue'
 import Cc3ModalDeliveryMethodSwitch from '../Modal/Cc3ModalDeliveryMethodSwitch.vue'
 import type { DeliveryProfile, DeliveryProfileMethod } from '../Modal/deliveryProfile'
 
@@ -39,6 +40,8 @@ const emit = defineEmits<{
 
 const { t } = useStand()
 
+const search = ref('')
+
 const text = computed(() => ({
   title: t('combined.bookTitle'),
   close: t('common.close'),
@@ -48,6 +51,8 @@ const text = computed(() => ({
   addPickup: t('combined.addPickup'),
   emptyCourier: t('combined.bookEmpty'),
   emptyPickup: t('combined.bookEmptyPickup'),
+  noResults: t('combined.bookNoResults', { query: search.value.trim() }),
+  clearSearch: t('combined.bookClearSearch'),
 }))
 
 const methodTabs = computed(() => ({
@@ -58,7 +63,6 @@ const methodTabs = computed(() => ({
 // Книга открывается на способе страницы: из самовывоза — самовывоз, из
 // курьера — курьер. Окно создаётся заново при каждом открытии.
 const activeMethod = ref<DeliveryProfileMethod>(props.method)
-const search = ref('')
 
 const addLabel = computed(() =>
   activeMethod.value === 'pickup' ? text.value.addPickup : text.value.addCourier,
@@ -87,6 +91,12 @@ function matchesQuery(entry: DeliveryProfile) {
 function matches(entry: DeliveryProfile) {
   return entry.method === activeMethod.value && matchesQuery(entry)
 }
+
+// В способе адреса есть, но запрос ничего не оставил: это «не найдено», а не
+// пустая книга — человеку нужно предложить сбросить поиск.
+const isNothingFound = computed(
+  () => !isMethodEmpty.value && !props.entries.some((entry) => matches(entry)),
+)
 
 // Совпадения только в другом способе — переходим на него, иначе человек видел
 // бы пустой список и думал, что адреса нет. Если совпадения в обоих способах
@@ -158,6 +168,18 @@ function onKeydown(event: KeyboardEvent) {
 
       <div class="cc3-combined-address-book__body">
         <p v-if="isMethodEmpty" class="cc3-combined-address-book__empty">{{ emptyText }}</p>
+
+        <div v-else-if="isNothingFound" class="cc3-combined-address-book__nothing">
+          <Cc3CombinedNotice>{{ text.noResults }}</Cc3CombinedNotice>
+
+          <button
+            type="button"
+            class="cc3-combined-address-book__clear"
+            @click="search = ''"
+          >
+            {{ text.clearSearch }}
+          </button>
+        </div>
 
         <div v-else class="cc3-combined-address-book__list">
           <template v-for="entry in entries" :key="entry.id">
@@ -292,6 +314,27 @@ function onKeydown(event: KeyboardEvent) {
     color: var(--st-content-foreground-color-neutral-primary);
     background-color: var(--st-content-background-color-neutral-subtle);
     border-radius: var(--st-global-radius-md);
+  }
+
+  &__nothing {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--st-global-distance-space-inset-xl);
+  }
+
+  &__clear {
+    padding: 0;
+
+    font-family: inherit;
+
+    @include font('label-sm');
+
+    color: var(--st-action-foreground-color-positive-normal);
+    text-decoration: underline;
+    background: none;
+    border: none;
+    cursor: pointer;
   }
 
   // Строка здесь — колонка: выбор и «Изменить адрес» друг под другом,

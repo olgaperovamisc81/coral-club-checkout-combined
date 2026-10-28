@@ -126,7 +126,7 @@ watch([deliveryCost, courierVariants], () => setDeliveryPrice(deliveryCost.value
 
       <Cc3CombinedPaymentMethods />
       <Cc3ModalOrderSummary />
-      <Cc3ModalFooter />
+      <Cc3ModalFooter explain-blocked />
     </div>
   </div>
 </template>

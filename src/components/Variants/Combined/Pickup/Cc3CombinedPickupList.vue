@@ -4,6 +4,7 @@ import { computed } from 'vue'
 import Cc3InputField from '@/components/Field/Cc3InputField.vue'
 import { useStand } from '@/stand/composables/useStand'
 
+import Cc3CombinedNotice from '../Cc3CombinedNotice.vue'
 import Cc3CombinedPickupFilters from './Cc3CombinedPickupFilters.vue'
 
 /**
@@ -30,6 +31,8 @@ defineProps<{
   selectedId?: string
   /** Адрес, выбранный в поиске; пока не выбран — поле пустое. */
   address: string
+  /** Пояснение под фильтрами: рядом с адресом пунктов нет. */
+  notice?: string
 }>()
 
 const emit = defineEmits<{
@@ -43,7 +46,6 @@ const { t } = useStand()
 const text = computed(() => ({
   findAddress: t('common.findAddress'),
   openUntil: t('pickup.openUntil'),
-  empty: t('pickup.empty'),
 }))
 </script>
 
@@ -59,6 +61,14 @@ const text = computed(() => ({
     </div>
 
     <Cc3CombinedPickupFilters :filters="filters" @select="emit('filter', $event)" />
+
+    <Cc3CombinedNotice
+      v-if="notice"
+      tone="warning"
+      class="cc3-combined-pickup-list__notice"
+    >
+      {{ notice }}
+    </Cc3CombinedNotice>
 
     <div v-if="points.length > 0" class="cc3-combined-pickup-list__items">
       <button
@@ -76,7 +86,6 @@ const text = computed(() => ({
       </button>
     </div>
 
-    <p v-else class="cc3-combined-pickup-list__empty">{{ text.empty }}</p>
   </div>
 </template>
 
@@ -110,6 +119,10 @@ const text = computed(() => ({
       cursor: pointer;
       pointer-events: none;
     }
+  }
+
+  &__notice {
+    margin: 0 var(--st-global-distance-space-inset-2xl) var(--st-global-distance-space-inset-md);
   }
 
   // Список прокручивается сам, а окно остаётся на месте — кнопка внизу всегда видна.
@@ -160,13 +173,6 @@ const text = computed(() => ({
     @include font('body-md');
 
     color: var(--st-content-foreground-color-positive-primary);
-  }
-
-  &__empty {
-    margin: 0;
-    padding: var(--st-global-distance-space-inset-xl) var(--st-global-distance-space-inset-2xl);
-
-    color: var(--st-content-foreground-color-neutral-tetriary);
   }
 }
 </style>

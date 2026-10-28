@@ -7,6 +7,7 @@ import { useStand } from '@/stand/composables/useStand'
 import Cc3ModalConfirmDialog from '../Modal/Cc3ModalConfirmDialog.vue'
 import type { DeliveryProfile } from '../Modal/deliveryProfile'
 import Cc3CombinedAddressForm from './Cc3CombinedAddressForm.vue'
+import Cc3CombinedNotice from './Cc3CombinedNotice.vue'
 
 /**
  * Правка сохранённого адреса курьера и добавление нового — окном на весь
@@ -18,6 +19,8 @@ import Cc3CombinedAddressForm from './Cc3CombinedAddressForm.vue'
 const props = defineProps<{
   /** Есть при правке; без него окно создаёт новый адрес. */
   editProfile?: DeliveryProfile
+  /** Адреса, уже лежащие в книге, — чтобы заметить повтор. */
+  knownAddresses?: string[]
 }>()
 
 const emit = defineEmits<{
@@ -34,16 +37,63 @@ const text = computed(() => ({
   save: props.editProfile ? t('combined.saveChanges') : t('common.continue'),
   remove: t('common.delete'),
   cancel: t('combined.cancel'),
+  deleteConfirm: t('combined.deleteConfirm'),
+  keep: t('combined.keep'),
+  discardConfirm: t('combined.discardConfirm'),
+  discardLeave: t('combined.discardLeave'),
+  discardStay: t('combined.discardStay'),
+  duplicate: t('combined.duplicateAddress'),
 }))
 
 const draft = ref<{ profile: DeliveryProfile; complete: boolean }>()
 const formRef = ref<InstanceType<typeof Cc3CombinedAddressForm>>()
 const isDeleteConfirmOpen = ref(false)
+const isDiscardConfirmOpen = ref(false)
 
+// Снимок формы в момент открытия: от него считаем, менял ли человек что-то.
+const initialSnapshot = ref<string>()
+
+function snapshotOf(profile: DeliveryProfile) {
+  return JSON.stringify([profile.addressLine, profile.name, profile.phone, profile.email])
+}
 
 function onChange(payload: { profile: DeliveryProfile; complete: boolean }) {
   draft.value = payload
+  initialSnapshot.value ??= snapshotOf(payload.profile)
 }
+
+const isDirty = computed(
+  () => draft.value !== undefined && snapshotOf(draft.value.profile) !== initialSnapshot.value,
+)
+
+// Закрыть окно с несохранёнными правками — только после подтверждения: крестик
+// и Esc стоят рядом с формой, и потерять ввод одним касанием слишком легко.
+function requestClose() {
+  if (isDirty.value) {
+    isDiscardConfirmOpen.value = true
+
+    return
+  }
+
+  emit('close')
+}
+
+function discard() {
+  isDiscardConfirmOpen.value = false
+  emit('close')
+}
+
+// Новый адрес, совпавший с лежащим в книге, не запрещён, но человек должен
+// об этом знать: две одинаковые карточки в книге путают при выборе.
+const isDuplicate = computed(() => {
+  const line = draft.value?.profile.addressLine.trim().toLowerCase()
+
+  if (!line) {
+    return false
+  }
+
+  return (props.knownAddresses ?? []).some((known) => known.trim().toLowerCase() === line)
+})
 
 // Кнопка не отключается молча: с недозаполненной формой она показывает
 // ошибки и ведёт к первому полю с ошибкой.
@@ -82,7 +132,7 @@ onBeforeUnmount(() => {
 
 function onKeydown(event: KeyboardEvent) {
   if (event.key === 'Escape') {
-    emit('close')
+    requestClose()
   }
 }
 </script>
@@ -102,7 +152,7 @@ function onKeydown(event: KeyboardEvent) {
           type="button"
           class="cc3-combined-address-edit-dialog__close"
           :aria-label="text.close"
-          @click="emit('close')"
+          @click="requestClose"
         >
           <Cc3Icon name="x-md" :size="24" />
         </button>
@@ -110,6 +160,14 @@ function onKeydown(event: KeyboardEvent) {
 
       <div class="cc3-combined-address-edit-dialog__body">
         <Cc3CombinedAddressForm ref="formRef" :edit-profile="editProfile" @change="onChange" />
+
+        <Cc3CombinedNotice
+          v-if="isDuplicate"
+          tone="warning"
+          class="cc3-combined-address-edit-dialog__notice"
+        >
+          {{ text.duplicate }}
+        </Cc3CombinedNotice>
 
         <!-- Кнопки прилипают к низу окна: форма длинная и уходит под них. -->
         <div class="cc3-combined-address-edit-dialog__actions">
@@ -134,7 +192,7 @@ function onKeydown(event: KeyboardEvent) {
             v-else
             type="button"
             class="cc3-combined-address-edit-dialog__delete"
-            @click="emit('close')"
+            @click="requestClose"
           >
             {{ text.cancel }}
           </button>
@@ -145,9 +203,21 @@ function onKeydown(event: KeyboardEvent) {
 
   <Cc3ModalConfirmDialog
     v-if="isDeleteConfirmOpen"
-    message="Do you want to delete this address?"
+    :message="text.deleteConfirm"
+    :confirm-label="text.remove"
+    :cancel-label="text.keep"
+    destructive
     @confirm="deleteProfile"
     @cancel="isDeleteConfirmOpen = false"
+  />
+
+  <Cc3ModalConfirmDialog
+    v-if="isDiscardConfirmOpen"
+    :message="text.discardConfirm"
+    :confirm-label="text.discardLeave"
+    :cancel-label="text.discardStay"
+    @confirm="discard"
+    @cancel="isDiscardConfirmOpen = false"
   />
 </template>
 
@@ -226,6 +296,10 @@ function onKeydown(event: KeyboardEvent) {
 
     overflow-y: auto;
     overscroll-behavior: contain;
+  }
+
+  &__notice {
+    margin: var(--st-global-distance-space-inset-xl) var(--st-global-distance-space-inset-2xl) 0;
   }
 
   // Кнопки прилипают к низу окна и видны всегда, а форма прокручивается под

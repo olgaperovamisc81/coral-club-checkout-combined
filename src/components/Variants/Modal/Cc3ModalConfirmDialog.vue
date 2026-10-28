@@ -3,6 +3,11 @@ defineProps<{
   message: string
   confirmLabel?: string
   cancelLabel?: string
+  /**
+   * Необратимое действие: главной становится «Отмена», а подтверждение
+   * остаётся обычной кнопкой — случайное нажатие не должно ничего стирать.
+   */
+  destructive?: boolean
 }>()
 
 defineEmits<{
@@ -19,11 +24,21 @@ defineEmits<{
       <div class="cc3-modal-confirm-dialog__card">
         <p class="cc3-modal-confirm-dialog__message">{{ message }}</p>
 
-        <button type="button" class="cc3-modal-confirm-dialog__confirm" @click="$emit('confirm')">
+        <button
+          type="button"
+          class="cc3-modal-confirm-dialog__confirm"
+          :class="{ 'cc3-modal-confirm-dialog__confirm--quiet': destructive }"
+          @click="$emit('confirm')"
+        >
           {{ confirmLabel ?? 'Delete' }}
         </button>
 
-        <button type="button" class="cc3-modal-confirm-dialog__cancel" @click="$emit('cancel')">
+        <button
+          type="button"
+          class="cc3-modal-confirm-dialog__cancel"
+          :class="{ 'cc3-modal-confirm-dialog__cancel--primary': destructive }"
+          @click="$emit('cancel')"
+        >
           {{ cancelLabel ?? 'Cancel' }}
         </button>
       </div>
@@ -117,6 +132,24 @@ defineEmits<{
     border: 1px solid var(--st-action-border-color-neutral-subtle-normal);
     border-radius: var(--st-global-radius-md);
     cursor: pointer;
+  }
+
+  // Необратимое действие: «Отмена» заливается и встаёт выше, подтверждение
+  // становится контурной кнопкой под ней.
+  &__confirm--quiet {
+    order: 2;
+
+    color: var(--st-action-foreground-color-neutral-normal);
+    background-color: var(--st-content-background-color-default-solid-normal);
+    border: 1px solid var(--st-action-border-color-neutral-subtle-normal);
+  }
+
+  &__cancel--primary {
+    order: 1;
+
+    color: var(--st-action-foreground-color-onprimary-normal);
+    background-color: var(--st-action-background-color-positive-normal);
+    border: none;
   }
 }
 </style>

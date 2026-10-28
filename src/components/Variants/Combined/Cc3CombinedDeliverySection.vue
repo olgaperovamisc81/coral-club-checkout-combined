@@ -302,6 +302,13 @@ function onSwitchMethod(method: DeliveryProfileMethod) {
   openNewForm()
 }
 
+// Адреса курьера, уже лежащие в книге, кроме правимого: по ним диалог замечает повтор.
+const knownAddresses = computed(() =>
+  entries.value
+    .filter((entry) => entry.method === 'courier' && entry.id !== editingEntryId.value)
+    .map((entry) => entry.addressLine),
+)
+
 function upsert(profile: DeliveryProfile) {
   const exists = entries.value.some((entry) => entry.id === profile.id)
 
@@ -489,6 +496,7 @@ const isSelectionMissing = computed(
     <Cc3CombinedAddressEditDialog
       v-if="isEditDialogOpen"
       :edit-profile="editingEntry"
+      :known-addresses="knownAddresses"
       @close="onEditClose"
       @confirm="onEditConfirm"
       @delete="onEntryDelete"
