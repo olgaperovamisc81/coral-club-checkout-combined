@@ -194,9 +194,20 @@ const options = computed(() => props.field.options ?? [])
 // начинать: с города, с улицы или с индекса.
 const PLACEHOLDER_TYPES = ['phone', 'autocomplete']
 
-const placeholder = computed(() =>
-  PLACEHOLDER_TYPES.includes(props.field.type) ? props.field.placeholder : '',
-)
+const placeholder = computed(() => {
+  if (!PLACEHOLDER_TYPES.includes(props.field.type)) {
+    return ''
+  }
+
+  // В комбинированной версии у телефона в подсказке только код страны, без
+  // «___»: страна на рынке одна и сменить её нельзя, а чёрточки читались как
+  // маска, которую надо заполнять по символам.
+  if (isFloating.value && props.field.type === 'phone') {
+    return props.field.placeholder?.match(/^\+\d+/)?.[0] ?? props.field.placeholder
+  }
+
+  return props.field.placeholder
+})
 
 const inputType = computed(() => {
   if (props.field.type === 'phone') return 'tel'
