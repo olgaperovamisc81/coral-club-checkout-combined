@@ -85,8 +85,14 @@ const courierVariant = ref(defaultVariantId.value)
 const { arm, registerAnchor, isMessageVisible } = useSlotConflict()
 const slotsRef = ref<HTMLElement>()
 
+// Слоты есть только на части рынков. Без них обёртка под списком способов
+// оставалась пустой, но со своим верхним отступом — и заголовок следующего
+// блока стоял на 16 дальше, чем положено.
+const hasSlots = computed(() => hasDeliverySlots(country.value))
+const isSlotsVisible = computed(() => isResolved.value && hasSlots.value)
+
 const isSlotCheckActive = computed(
-  () => isOptionsVisible.value && isResolved.value && hasDeliverySlots(country.value),
+  () => isOptionsVisible.value && isResolved.value && hasSlots.value,
 )
 
 watch(isSlotCheckActive, (active) => arm(active), { immediate: true })
@@ -141,7 +147,7 @@ watch([deliveryCost, courierVariants], () => setDeliveryPrice(deliveryCost.value
 
         <Cc3CombinedDeliveryOptions v-model="courierVariant" :resolved="isResolved" />
 
-        <div v-if="isResolved" ref="slotsRef" class="cc3-combined-checkout__slots">
+        <div v-if="isSlotsVisible" ref="slotsRef" class="cc3-combined-checkout__slots">
           <Cc3InlineDeliverySlots :variant-id="courierVariant" />
 
           <Cc3CombinedNotice
