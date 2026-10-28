@@ -85,9 +85,9 @@ function applyCustom() {
 
 <template>
   <section v-if="isVisible" class="cc3-combined-wallet">
-    <div class="cc3-combined-wallet__card">
-      <h2 class="cc3-combined-wallet__title">{{ text.title }}</h2>
+    <h2 class="cc3-combined-wallet__title">{{ text.title }}</h2>
 
+    <div class="cc3-combined-wallet__card">
       <!-- Скидка ещё не применена: предлагаем списать доступный баланс. -->
       <template v-if="walletMode === 'idle'">
         <p class="cc3-combined-wallet__description">
@@ -172,8 +172,11 @@ function applyCustom() {
     border-radius: var(--st-global-radius-md);
   }
 
+  // Заголовок вне карточки и с теми же отступами, что у «Способов оплаты».
   &__title {
     margin: 0;
+    padding: var(--st-global-distance-space-inset-sm) 0
+      calc(var(--st-global-distance-space-inset-xl) + var(--st-global-distance-space-inset-x));
 
     @include font('heading-xxs');
 
@@ -224,7 +227,9 @@ function applyCustom() {
     }
   }
 
-  // Кнопки те же, что в окнах версии: главная — залитая, вторая — контурная.
+  // «Применить» — второстепенная кнопка (светлая заливка): залитая главная
+  // здесь слишком яркая, главное действие страницы — оплата внизу. «Убрать» —
+  // контурная.
   &__apply,
   &__remove {
     display: flex;
@@ -243,8 +248,8 @@ function applyCustom() {
   }
 
   &__apply {
-    color: var(--st-action-foreground-color-onprimary-normal);
-    background-color: var(--st-action-background-color-positive-normal);
+    color: var(--st-action-foreground-color-positive-normal);
+    background-color: var(--st-action-background-color-positive-subtle-normal);
     border: none;
   }
 
