@@ -26,9 +26,23 @@ const { courierVariants } = useCourierVariants()
 const { isWarningVisible } = useAddressGuard()
 
 const text = computed(() => ({
-  hint: t('delivery.variants.hint'),
+  hintLink: t('delivery.variants.hintLink'),
+  hintRest: t('delivery.variants.hintRest'),
   required: t('combined.addressRequired'),
 }))
+
+/**
+ * «Укажите адрес» — ссылка: подскролливает к строке адреса и ставит в неё
+ * курсор. Если формы на экране нет (адрес не выбран из книги после удаления),
+ * ведёт к началу блока доставки, где предложено выбрать или добавить адрес.
+ */
+function goToAddress() {
+  const field = document.querySelector<HTMLInputElement>('.cc3-combined-address-form input')
+  const target = field ?? document.querySelector<HTMLElement>('.cc3-combined-delivery')
+
+  target?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+  field?.focus({ preventScroll: true })
+}
 
 const isWarning = computed(() => !props.resolved && isWarningVisible.value)
 </script>
@@ -62,7 +76,11 @@ const isWarning = computed(() => !props.resolved && isWarningVisible.value)
       {{ text.required }}
     </p>
 
-    <p class="cc3-combined-delivery-options__hint">{{ text.hint }}</p>
+    <p class="cc3-combined-delivery-options__hint">
+      <button type="button" class="cc3-combined-delivery-options__hint-link" @click="goToAddress">
+        {{ text.hintLink }}
+      </button>{{ text.hintRest }}
+    </p>
   </div>
 </template>
 
@@ -110,6 +128,19 @@ const isWarning = computed(() => !props.resolved && isWarningVisible.value)
     color: var(--st-content-foreground-color-neutral-tetriary);
     background-color: var(--st-content-background-color-neutral-subtle);
     border-radius: var(--st-global-radius-md);
+  }
+
+  // Ссылка внутри серой строки-подсказки: подчёркнутая, цвет ссылок версии.
+  &__hint-link {
+    padding: 0;
+
+    font: inherit;
+
+    color: var(--st-action-foreground-color-positive-normal);
+    text-decoration: underline;
+    background: none;
+    border: none;
+    cursor: pointer;
   }
 
   // Без рамки и подложки: в рамке строка читается как ещё одна кнопка,

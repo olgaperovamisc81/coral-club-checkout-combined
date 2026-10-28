@@ -134,6 +134,8 @@ export default {
   'address.search.open': 'Найти адрес',
   'common.findAddress': 'Найти адрес',
   'delivery.variants.hint': 'Укажите адрес, чтобы увидеть варианты доставки',
+  'delivery.variants.hintLink': 'Укажите адрес',
+  'delivery.variants.hintRest': ', чтобы увидеть варианты доставки',
   // Подписи дат собираются из даты прогона: раньше тут стояли
   // «28 авг, пт» строками, и к октябрю стенд предлагал доставку
   // в прошлом. Сами даты и окна времени — в config/deliverySlots.ts.
