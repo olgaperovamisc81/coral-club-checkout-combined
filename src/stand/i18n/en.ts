@@ -56,6 +56,7 @@ export default {
   'combined.discardStay': 'Stay',
   'combined.bookNoResults': 'Nothing found for “{query}”',
   'combined.bookClearSearch': 'Clear search',
+  'combined.clearAddress': 'Clear address',
   'combined.duplicateAddress': 'This address is already in your address book',
   'combined.editPickupTitle': 'Edit pickup point',
   'combined.addTitle': 'New delivery address',

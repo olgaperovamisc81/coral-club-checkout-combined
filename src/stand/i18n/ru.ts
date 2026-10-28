@@ -56,6 +56,7 @@ export default {
   'combined.discardStay': 'Остаться',
   'combined.bookNoResults': 'Ничего не найдено по запросу «{query}»',
   'combined.bookClearSearch': 'Сбросить поиск',
+  'combined.clearAddress': 'Сбросить адрес',
   'combined.duplicateAddress': 'Такой адрес уже есть в вашей книге',
   'combined.editPickupTitle': 'Редактирование пункта самовывоза',
   'combined.addTitle': 'Новый адрес доставки',

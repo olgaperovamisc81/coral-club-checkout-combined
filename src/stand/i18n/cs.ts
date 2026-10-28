@@ -56,6 +56,7 @@ export default {
   'combined.discardStay': 'Zůstat',
   'combined.bookNoResults': 'Pro „{query}“ nebylo nic nalezeno',
   'combined.bookClearSearch': 'Zrušit hledání',
+  'combined.clearAddress': 'Smazat adresu',
   'combined.duplicateAddress': 'Tato adresa už je ve vaší knize adres',
   'combined.editPickupTitle': 'Úprava výdejního místa',
   'combined.addTitle': 'Nová doručovací adresa',

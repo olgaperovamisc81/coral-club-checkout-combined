@@ -344,6 +344,15 @@ function onPickSuggestion(suggestion: AddressSuggestion) {
   }
 }
 
+// Сброс адреса из поля в списке: порядок пунктов и центр карты возвращаются к
+// исходным, выбранный пункт снимается.
+function onClearAddress() {
+  address.value = ''
+  focusPoint.value = undefined
+  selectedId.value = undefined
+  mapKey.value += 1
+}
+
 function bringHere() {
   step.value = 'detail'
 }
@@ -508,7 +517,8 @@ function onKeydown(event: KeyboardEvent) {
               :notice="nearbyNotice"
               @select="onListPick"
               @filter="onFilter"
-              @search="isSearchOpen = true"
+              @pick="onPickSuggestion"
+              @clear="onClearAddress"
             />
           </template>
 

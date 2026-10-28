@@ -56,6 +56,7 @@ export default {
   'combined.discardStay': 'Zostań',
   'combined.bookNoResults': 'Nic nie znaleziono dla „{query}”',
   'combined.bookClearSearch': 'Wyczyść wyszukiwanie',
+  'combined.clearAddress': 'Wyczyść adres',
   'combined.duplicateAddress': 'Ten adres jest już w Twojej książce adresowej',
   'combined.editPickupTitle': 'Edycja punktu odbioru',
   'combined.addTitle': 'Nowy adres dostawy',

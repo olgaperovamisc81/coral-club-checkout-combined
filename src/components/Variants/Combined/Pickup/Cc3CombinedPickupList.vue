@@ -1,16 +1,17 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 
-import Cc3InputField from '@/components/Field/Cc3InputField.vue'
 import { useStand } from '@/stand/composables/useStand'
+import type { AddressSuggestion } from '@/stand/suggest'
 
 import Cc3CombinedNotice from '../Cc3CombinedNotice.vue'
 import Cc3CombinedPickupFilters from './Cc3CombinedPickupFilters.vue'
+import Cc3CombinedPickupListSearch from './Cc3CombinedPickupListSearch.vue'
 
 /**
- * Вкладка «Список»: поле адреса, фильтр по службам и пункты в столбик.
- * Поле не печатает само, а открывает шторку поиска — подсказки одни и те
- * же на карте и в списке.
+ * Вкладка «Список»: поле адреса с подсказками под ним, фильтр по службам и
+ * пункты в столбик. Поле печатает прямо здесь, без шторки — подсказки те же,
+ * что на карте, но стоят в потоке страницы.
  */
 type PickupListItem = {
   id: string
@@ -39,13 +40,13 @@ defineProps<{
 const emit = defineEmits<{
   select: [id: string]
   filter: [id: string]
-  search: []
+  pick: [suggestion: AddressSuggestion]
+  clear: []
 }>()
 
 const { t } = useStand()
 
 const text = computed(() => ({
-  findAddress: t('common.findAddress'),
   openUntil: t('pickup.openUntil'),
   closedNow: t('pickup.closedNow'),
 }))
@@ -53,14 +54,7 @@ const text = computed(() => ({
 
 <template>
   <div class="cc3-combined-pickup-list">
-    <div class="cc3-combined-pickup-list__field">
-      <span class="cc3-combined-pickup-list__label">{{ text.findAddress }}</span>
-
-      <!-- Чтение без ввода: нажатие открывает шторку поиска. -->
-      <div class="cc3-combined-pickup-list__input" @click="emit('search')">
-        <Cc3InputField :model-value="address" type="text" readonly />
-      </div>
-    </div>
+    <Cc3CombinedPickupListSearch :address="address" @pick="emit('pick', $event)" @clear="emit('clear')" />
 
     <Cc3CombinedPickupFilters :filters="filters" @select="emit('filter', $event)" />
 
@@ -103,30 +97,6 @@ const text = computed(() => ({
   flex-direction: column;
 
   min-height: 0;
-
-  &__field {
-    display: flex;
-    flex-direction: column;
-    gap: var(--st-global-distance-space-inset-sm);
-
-    padding: var(--st-global-distance-space-inset-xl) var(--st-global-distance-space-inset-2xl);
-  }
-
-  &__label {
-    @include font('label-sm');
-
-    color: var(--st-content-foreground-color-neutral-secondary);
-  }
-
-  &__input {
-    cursor: pointer;
-
-    // Нажатие должно дойти до обёртки, а не уйти в поле с курсором ввода.
-    .cc3-input-field__input {
-      cursor: pointer;
-      pointer-events: none;
-    }
-  }
 
   &__notice {
     margin: 0 var(--st-global-distance-space-inset-2xl) var(--st-global-distance-space-inset-md);
