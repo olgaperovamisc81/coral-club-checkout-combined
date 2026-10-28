@@ -83,7 +83,6 @@ export default {
   'error.firstName.required': 'Zadejte jméno',
   'error.lastName.required': 'Zadejte příjmení',
   'error.phone.required': 'Zadejte telefonní číslo',
-  'error.phone.format': 'Zkontrolujte telefonní číslo',
   'error.email.required': 'Zadejte e-mailovou adresu',
   'error.email.format': 'Zkontrolujte e-mailovou adresu',
 

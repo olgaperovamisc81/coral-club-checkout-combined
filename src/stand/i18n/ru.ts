@@ -83,7 +83,6 @@ export default {
   'error.firstName.required': 'Укажите имя',
   'error.lastName.required': 'Укажите фамилию',
   'error.phone.required': 'Укажите номер телефона',
-  'error.phone.format': 'Проверьте номер телефона',
   'error.email.required': 'Укажите адрес почты',
   'error.email.format': 'Проверьте адрес почты',
 

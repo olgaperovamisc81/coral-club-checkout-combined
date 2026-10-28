@@ -83,7 +83,6 @@ export default {
   'error.firstName.required': 'Enter your first name',
   'error.lastName.required': 'Enter your last name',
   'error.phone.required': 'Enter a phone number',
-  'error.phone.format': 'Check the phone number',
   'error.email.required': 'Enter an email address',
   'error.email.format': 'Check the email address',
 

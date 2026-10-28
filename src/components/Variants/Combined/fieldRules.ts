@@ -21,16 +21,6 @@ const postalRules: Record<CountryCode, PostalRule> = {
   cz: { pattern: /^\d{3} ?\d{2}$/, example: '110 00' },
 }
 
-/** Телефонный код страны и допустимая длина номера без него. */
-const phoneRules: Record<CountryCode, { dial: string; min: number; max: number }> = {
-  ru: { dial: '7', min: 10, max: 10 },
-  kz: { dial: '7', min: 10, max: 10 },
-  us: { dial: '1', min: 10, max: 10 },
-  de: { dial: '49', min: 10, max: 11 },
-  pl: { dial: '48', min: 9, max: 9 },
-  cz: { dial: '420', min: 9, max: 9 },
-}
-
 /** Какое сообщение просить, когда поле обязательное и пустое. */
 const requiredKeys: Partial<Record<FieldKey, string>> = {
   street: 'error.street.required',
@@ -47,24 +37,6 @@ const requiredKeys: Partial<Record<FieldKey, string>> = {
 
 /** Запасное сообщение для полей, которым своего не нашлось. */
 const FALLBACK_REQUIRED = 'combined.fieldRequired'
-
-function phoneIsValid(value: string, country: CountryCode) {
-  const rule = phoneRules[country]
-  const digits = value.replace(/\D/g, '')
-
-  // У России и Казахстана номер часто пишут с 8 вместо +7.
-  const hasTrunkEight = (country === 'ru' || country === 'kz') && digits.startsWith('8')
-
-  let national = digits
-
-  if (digits.startsWith(rule.dial) && digits.length > rule.dial.length) {
-    national = digits.slice(rule.dial.length)
-  } else if (hasTrunkEight) {
-    national = digits.slice(1)
-  }
-
-  return national.length >= rule.min && national.length <= rule.max
-}
 
 /**
  * Проверка одного поля. `required` приходит из конфига страны: пустое
@@ -98,8 +70,8 @@ export function checkField(
     case 'recipientName':
       return /\S+\s+\S+/.test(value) ? undefined : { key: 'error.name.required' }
 
-    case 'recipientPhone':
-      return phoneIsValid(value, country) ? undefined : { key: 'error.phone.format' }
+    // Телефон по стране не проверяем: на тестовом стенде вводят любой номер,
+    // а подсказка с кодом страны стоит в самом поле. Остаётся только «не пусто».
 
     case 'recipientEmail':
       return /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(value) ? undefined : { key: 'error.email.format' }

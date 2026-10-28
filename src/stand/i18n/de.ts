@@ -83,7 +83,6 @@ export default {
   'error.firstName.required': 'Geben Sie den Vornamen ein',
   'error.lastName.required': 'Geben Sie den Nachnamen ein',
   'error.phone.required': 'Geben Sie eine Telefonnummer ein',
-  'error.phone.format': 'Prüfen Sie die Telefonnummer',
   'error.email.required': 'Geben Sie eine E-Mail-Adresse ein',
   'error.email.format': 'Prüfen Sie die E-Mail-Adresse',
 

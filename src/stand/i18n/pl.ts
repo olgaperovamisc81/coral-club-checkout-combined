@@ -83,7 +83,6 @@ export default {
   'error.firstName.required': 'Podaj imię',
   'error.lastName.required': 'Podaj nazwisko',
   'error.phone.required': 'Podaj numer telefonu',
-  'error.phone.format': 'Sprawdź numer telefonu',
   'error.email.required': 'Podaj adres e-mail',
   'error.email.format': 'Sprawdź adres e-mail',
 
