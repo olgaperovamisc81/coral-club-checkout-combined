@@ -55,7 +55,6 @@ const { recipientValues: profileRecipient } = useStandProfile()
 const text = computed(() => ({
   title: props.editProfile ? t('combined.editPickupTitle') : t('pickup.title'),
   close: t('common.close'),
-  bringHere: t('combined.bringHere'),
   continue: t('common.continue'),
   save: t('combined.saveChanges'),
   remove: t('common.delete'),
@@ -298,6 +297,14 @@ function bringHere() {
   step.value = 'detail'
 }
 
+// В списке кнопки «Привезти сюда» нет: нажатие на пункт сразу ведёт на шаг
+// уточнения. На карте выбор и подтверждение разделены шторкой, потому что там
+// нажатие на метку может быть просто осмотром.
+function onListPick(id: string) {
+  selectedId.value = id
+  bringHere()
+}
+
 // Единственный путь назад с шага уточнения — ссылка «На карте» у заголовка.
 // Возвращает карту, а не список, на котором случайно остановились.
 function backToPicker() {
@@ -426,7 +433,7 @@ function onKeydown(event: KeyboardEvent) {
               :filters="providerFilters"
               :selected-id="selectedId"
               :address="address"
-              @select="selectedId = $event"
+              @select="onListPick"
               @filter="onFilter"
               @search="isSearchOpen = true"
             />
@@ -456,18 +463,7 @@ function onKeydown(event: KeyboardEvent) {
         />
       </div>
 
-      <div v-if="step === 'picker' && view === 'list'" class="cc3-combined-pickup-dialog__footer">
-        <button
-          type="button"
-          class="cc3-combined-pickup-dialog__confirm"
-          :disabled="!activePoint"
-          @click="bringHere"
-        >
-          {{ text.bringHere }}
-        </button>
-      </div>
-
-      <div v-else-if="step === 'detail'" class="cc3-combined-pickup-dialog__footer">
+      <div v-if="step === 'detail'" class="cc3-combined-pickup-dialog__footer">
         <button type="button" class="cc3-combined-pickup-dialog__confirm" @click="confirm">
           {{ editProfile ? text.save : text.continue }}
         </button>
