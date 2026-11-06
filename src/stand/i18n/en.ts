@@ -298,6 +298,8 @@ export default {
   // ответил. Для человека разницы нет — ему важно, что дальше можно
   // просто ввести адрес руками.
   'suggest.empty': 'No results. You can enter the address manually',
+  // Слово из suggest.empty и suggest.error, которое становится ссылкой «ввести вручную».
+  'suggest.manualWord': 'manually',
 
   'field.addressLabel.label': 'Address name',
   'field.addressLabel.home': 'Home',

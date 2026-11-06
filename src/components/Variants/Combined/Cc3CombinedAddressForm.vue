@@ -8,7 +8,8 @@ import { composeAddressLine } from '@/stand/config/addressLine'
 import { useStand } from '@/stand/composables/useStand'
 import { useStandFields } from '@/stand/composables/useStandFields'
 import { useStandProfile } from '@/stand/composables/useStandProfile'
-import type { FieldKey } from '@/stand/config/types'
+import { autocompleteByKey } from '@/stand/config/types'
+import type { FieldKey, StandField } from '@/stand/config/types'
 import { applySuggestion } from '@/stand/suggest'
 import type { AddressSuggestion } from '@/stand/suggest'
 
@@ -57,11 +58,41 @@ const { fields: recipientFields } = useStandFields('recipient')
 
 // Типов адреса «Дом / Работа / Своё название» в этом сценарии нет — как и
 // в инлайн-форме, поле из конфига не рисуем.
-const renderedAddressFields = computed(() =>
+const baseAddressFields = computed(() =>
   addressFields.value.filter((field) => field.key !== 'addressLabel'),
 )
 
 const values = ref<Partial<Record<FieldKey, string>>>({})
+
+// Ручной ввод: человек сказал, что подсказки ему не нужны, и пишет адрес сам.
+// Там, где в форме страны города нет (в России он стоит в строке адреса), на
+// это время появляется поле «Город»: без подсказки город взять неоткуда.
+const isManual = ref(false)
+
+const manualCityField = computed<StandField>(() => ({
+  key: 'city',
+  type: 'text',
+  label: t('field.city.label'),
+  placeholder: '',
+  autocomplete: autocompleteByKey.city,
+  required: true,
+  autofilled: false,
+  prefilled: false,
+  half: false,
+}))
+
+// Город встаёт сразу под строкой адреса, перед домом и индексом.
+const renderedAddressFields = computed(() => {
+  const base = baseAddressFields.value
+
+  if (!isManual.value || base.some((field) => field.key === 'city')) {
+    return base
+  }
+
+  const streetIndex = base.findIndex((field) => field.key === 'street')
+
+  return [...base.slice(0, streetIndex + 1), manualCityField.value, ...base.slice(streetIndex + 1)]
+})
 
 // Свёрнутая форма — только строка адреса; раскрытая показывает все поля адреса
 // страны. Правка сохранённого адреса раскрыта сразу.
@@ -116,10 +147,14 @@ watch(country, () => {
   seedValues()
   isExpanded.value = Boolean(props.editProfile)
   isRevealAnimated.value = false
+  isManual.value = false
 })
 
 function onSuggestionSelect(suggestion: AddressSuggestion) {
   expand()
+
+  // Выбранный адрес приносит город с собой — отдельное поле больше не нужно.
+  isManual.value = false
 
   values.value = applySuggestion(
     values.value,
@@ -132,6 +167,30 @@ function onSuggestionSelect(suggestion: AddressSuggestion) {
   if (suggestion.lat !== undefined && suggestion.lng !== undefined) {
     mapPoint.value = { lat: suggestion.lat, lng: suggestion.lng }
   }
+}
+
+/**
+ * «Вручную» в сообщении «ничего не найдено»: показываем все поля адреса (и
+ * город, если его в форме страны нет) и ставим курсор в первое пустое поле
+ * после строки адреса (обязательное — раньше необязательного).
+ */
+function onManualEntry() {
+  isManual.value = true
+  expand()
+
+  void nextTick(() => {
+    const inputs = [
+      ...document.querySelectorAll<HTMLInputElement>(
+        '.cc3-combined-address-form__fields:first-of-type input',
+      ),
+    ]
+    const empty = inputs.slice(1).filter((input) => input.value === '')
+    const required = empty.find((input) => input.closest('.cc3-stand-field--required'))
+
+    // Сначала первое пустое обязательное поле: необязательная квартира — не то,
+    // с чего человеку нужно продолжать.
+    ;(required ?? empty[0])?.focus()
+  })
 }
 
 // Уход из строки адреса — это и есть «поработал с полем»: что бы в ней ни
@@ -269,7 +328,9 @@ watch(
             :invalid="Boolean(visible[field.key])"
             :error="visible[field.key]"
             floating
+            manual-entry
             @select="onSuggestionSelect"
+            @manual="onManualEntry"
             @focusout="onAddressFocusout(field.key)"
           />
 

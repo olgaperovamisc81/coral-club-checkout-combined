@@ -16,7 +16,20 @@
       </li>
     </ul>
 
-    <p v-if="note" class="cc3-stand-field-suggest__note">{{ note }}</p>
+    <p v-if="note" class="cc3-stand-field-suggest__note">
+      <template v-if="noteParts">
+        {{ noteParts.before
+        }}<button
+          type="button"
+          class="cc3-stand-field-suggest__manual"
+          @mousedown.prevent="emit('manual')"
+        >
+          {{ noteParts.link }}
+        </button>{{ noteParts.after }}
+      </template>
+
+      <template v-else>{{ note }}</template>
+    </p>
   </div>
 </template>
 
@@ -37,11 +50,18 @@ const props = defineProps<{
   items: AddressSuggestion[]
   activeIndex: number
   status: SuggestStatus
+  /**
+   * Слово «вручную» в сообщении «ничего не найдено / сервис не ответил»
+   * становится кнопкой. Нужно версии, у которой есть режим ручного ввода;
+   * у остальных сообщение остаётся обычным текстом.
+   */
+  manual?: boolean
 }>()
 
 const emit = defineEmits<{
   pick: [suggestion: AddressSuggestion]
   hover: [index: number]
+  manual: []
 }>()
 
 const { t } = useStand()
@@ -56,6 +76,29 @@ const note = computed(() => {
   if (props.status === 'error') return t('suggest.error')
 
   return ''
+})
+
+// Сообщение разбирается по слову из словаря: оно стоит в разных местах фразы
+// (по-немецки — перед «eingeben»), поэтому «до / ссылка / после», а не «текст + слово».
+const noteParts = computed(() => {
+  const isManualNote = props.status === 'empty' || props.status === 'error'
+
+  if (!props.manual || !isManualNote) {
+    return undefined
+  }
+
+  const word = t('suggest.manualWord')
+  const index = note.value.indexOf(word)
+
+  if (index === -1) {
+    return undefined
+  }
+
+  return {
+    before: note.value.slice(0, index),
+    link: word,
+    after: note.value.slice(index + word.length),
+  }
 })
 </script>
 
@@ -104,6 +147,19 @@ const note = computed(() => {
     &--active {
       background-color: var(--st-content-background-color-neutral-secondary);
     }
+  }
+
+  // «Вручную» — кнопка внутри текста: подчёркнутая, цвет ссылок версии.
+  &__manual {
+    padding: 0;
+
+    font: inherit;
+
+    color: var(--st-action-foreground-color-positive-normal);
+    text-decoration: underline;
+    background: none;
+    border: none;
+    cursor: pointer;
   }
 
   // Подпись лежит на той же подложке, что и список. Раньше она появлялась

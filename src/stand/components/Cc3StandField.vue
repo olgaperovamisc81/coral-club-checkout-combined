@@ -68,8 +68,10 @@
       :items="items"
       :active-index="activeIndex"
       :status="status"
+      :manual="manualEntry"
       @pick="onPick"
       @hover="onHover"
+      @manual="onManual"
     />
 
     <span v-if="hint" class="cc3-stand-field__hint">{{ hint }}</span>
@@ -127,9 +129,15 @@ const props = defineProps<{
    * Рамка и радиус остаются как у обычного поля.
    */
   floating?: boolean
+  /**
+   * В сообщении «ничего не найдено» слово «вручную» — кнопка: нажатие
+   * сообщает форме, что человек вводит адрес сам. Нужна версии с режимом
+   * ручного ввода.
+   */
+  manualEntry?: boolean
 }>()
 
-const emit = defineEmits<{ select: [suggestion: AddressSuggestion] }>()
+const emit = defineEmits<{ select: [suggestion: AddressSuggestion]; manual: [] }>()
 
 const value = defineModel<string>({ default: '' })
 
@@ -258,6 +266,17 @@ function onPick(suggestion: AddressSuggestion) {
   activeIndex.value = -1
   reset()
   emit('select', suggestion)
+}
+
+/**
+ * «Ввести вручную»: список закрывается, набранное остаётся в поле, а форма
+ * решает, какие поля показать и куда поставить курсор.
+ */
+function onManual() {
+  isFocused.value = false
+  activeIndex.value = -1
+  reset()
+  emit('manual')
 }
 
 function move(step: number) {
