@@ -65,6 +65,11 @@ const errorText = computed(() => {
   return isContinueTried.value && !label.value.trim() ? text.value.selectError : ''
 })
 
+// Карточка с адресом целиком: в строке поиска он обрезается, а под меткой
+// человеку нужно прочитать его весь. Пока геокодер не определил адрес под
+// новой меткой, прежний адрес не показываем — он принадлежит другому месту.
+const fullAddress = computed(() => (isGeocodeFailed.value ? '' : label.value.trim()))
+
 const center = computed<MapPoint>(() => point.value ?? mapCenter.value)
 
 let reverseController: AbortController | undefined
@@ -255,6 +260,10 @@ function onKeydown(event: KeyboardEvent) {
             </span>
           </button>
 
+          <p v-if="fullAddress" class="cc3-combined-map-dialog__address">
+            {{ fullAddress }}
+          </p>
+
           <button type="button" class="cc3-combined-map-dialog__continue" @click="confirm">
             {{ text.continue }}
           </button>
@@ -443,6 +452,18 @@ function onKeydown(event: KeyboardEvent) {
     &--empty {
       color: var(--st-content-foreground-color-neutral-tetriary);
     }
+  }
+
+  &__address {
+    margin: 0;
+    padding: var(--st-global-distance-space-inset-xl);
+
+    @include font('body-md');
+
+    color: var(--st-content-foreground-color-neutral-primary);
+    background-color: var(--st-content-background-color-neutral-subtle);
+    border-radius: var(--st-global-radius-md);
+    overflow-wrap: anywhere;
   }
 
   &__continue {
