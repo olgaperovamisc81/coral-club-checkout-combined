@@ -335,7 +335,10 @@ async function offerHouses(street: string) {
   isFollowUp.value = true
   followUpStreet.value = street.toLowerCase()
   isFocused.value = true
-  ask(`${line}, `)
+  // Без цифры в запросе часть сервисов (Photon) отдаёт только саму улицу, а
+  // дома ищет, когда номер уже начат. «1» — начало номера, а не выдуманный
+  // адрес: человеку приходят настоящие дома этой улицы, которые сервис нашёл.
+  ask(`${line}, 1`)
 }
 
 /**

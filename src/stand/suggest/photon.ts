@@ -136,10 +136,16 @@ export const photonProvider: SuggestProvider = {
     const data = (await response.json()) as { features?: PhotonFeature[] }
     const features = data.features ?? []
 
-    return features
+    const suggestions = features
       .filter((feature) => belongsToCountry(feature, country))
       .map((feature, index) => toSuggestion(feature, country, index))
       .filter((suggestion) => suggestion.label.length > 0)
+
+    // В OSM одна улица или один дом бывают несколькими объектами с одной и
+    // той же подписью — в списке они читаются как четыре одинаковые строки и
+    // забивают лимит. Оставляем первую из каждой подписи.
+    return suggestions
+      .filter((suggestion, index) => suggestions.findIndex((s) => s.label === suggestion.label) === index)
       .slice(0, LIMIT)
   },
 
