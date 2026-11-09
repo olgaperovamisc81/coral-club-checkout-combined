@@ -329,6 +329,7 @@ watch(
             :error="visible[field.key]"
             floating
             manual-entry
+            follow-up
             @select="onSuggestionSelect"
             @manual="onManualEntry"
             @focusout="onAddressFocusout(field.key)"

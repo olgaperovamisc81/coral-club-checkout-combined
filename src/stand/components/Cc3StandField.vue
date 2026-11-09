@@ -65,9 +65,9 @@
 
     <Cc3StandFieldSuggest
       v-if="isListOpen"
-      :items="items"
+      :items="shownItems"
       :active-index="activeIndex"
-      :status="status"
+      :status="shownStatus"
       :manual="manualEntry"
       @pick="onPick"
       @hover="onHover"
@@ -79,13 +79,13 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import { computed, nextTick, ref } from 'vue'
 
 import Cc3InputField from '@/components/Field/Cc3InputField.vue'
 import Cc3Icon from '@/components/Icon/Cc3Icon.vue'
 
 import type { StandField } from '../config/types'
-import type { AddressSuggestion } from '../suggest/types'
+import type { AddressSuggestion, SuggestStatus } from '../suggest/types'
 import { useAddressSuggest } from '../composables/useAddressSuggest'
 import { useStand } from '../composables/useStand'
 import Cc3StandFieldSuggest from './Cc3StandFieldSuggest.vue'
@@ -135,6 +135,12 @@ const props = defineProps<{
    * ручного ввода.
    */
   manualEntry?: boolean
+  /**
+   * Если выбрана подсказка без номера дома (только улица), поле один раз
+   * предлагает продолжить: сразу выдаёт подсказки с домами на этой улице.
+   * Не выбрал дом — больше не навязываем.
+   */
+  followUp?: boolean
 }>()
 
 const emit = defineEmits<{ select: [suggestion: AddressSuggestion]; manual: [] }>()
@@ -146,6 +152,12 @@ const { items, status, ask, reset } = useAddressSuggest()
 
 const isFocused = ref(false)
 const activeIndex = ref(-1)
+
+// Список сейчас — повторная подсказка после улицы, а не ответ на ввод.
+const isFollowUp = ref(false)
+
+// Улица, выбранная перед повторной подсказкой: только её дома и показываем.
+const followUpStreet = ref('')
 
 const fieldId = computed(() => `stand-field-${props.field.key}`)
 
@@ -168,8 +180,30 @@ const hasChevron = computed(() => isFloating.value && props.field.type === 'sele
 // два текста наложились бы друг на друга.
 const selectPlaceholder = computed(() => (isFloating.value ? '' : props.field.placeholder))
 
+// Повторная подсказка показывает только дома на выбранной улице; если таких
+// нет — молчит: «ничего не найдено» после уже выбранной улицы только запутало
+// бы, а дом с соседней улицы был бы чужим адресом.
+const shownItems = computed(() =>
+  isFollowUp.value
+    ? items.value.filter(
+        (item) => item.house !== '' && item.street.toLowerCase() === followUpStreet.value,
+      )
+    : items.value,
+)
+
+const shownStatus = computed<SuggestStatus>(() => {
+  if (!isFollowUp.value) {
+    return status.value
+  }
+
+  return shownItems.value.length > 0 ? 'ready' : 'idle'
+})
+
 const isListOpen = computed(
-  () => isSuggest.value && isFocused.value && (items.value.length > 0 || status.value !== 'idle'),
+  () =>
+    isSuggest.value &&
+    isFocused.value &&
+    (shownItems.value.length > 0 || shownStatus.value !== 'idle'),
 )
 
 // Подпись объясняет, что значение подставится из подсказки и вводить его
@@ -237,6 +271,7 @@ function onInput(event: Event) {
   }
 
   activeIndex.value = -1
+  isFollowUp.value = false
   ask((event.target as HTMLInputElement).value)
 }
 
@@ -247,6 +282,12 @@ function onFocus() {
 function onBlur() {
   isFocused.value = false
   activeIndex.value = -1
+
+  // Повторная подсказка — разовая: ушёл из поля, не выбрав дом, — снимается.
+  if (isFollowUp.value) {
+    isFollowUp.value = false
+    reset()
+  }
 }
 
 function onHover(index: number) {
@@ -262,10 +303,39 @@ function onHover(index: number) {
  * значения. Поэтому поле только сообщает о выборе, а пишет их владелец.
  */
 function onPick(suggestion: AddressSuggestion) {
+  const canFollowUp = Boolean(props.followUp) && !isFollowUp.value && suggestion.house === ''
+
   isFocused.value = false
   activeIndex.value = -1
+  isFollowUp.value = false
   reset()
   emit('select', suggestion)
+
+  if (canFollowUp && suggestion.street) {
+    void offerHouses(suggestion.street)
+  }
+}
+
+/**
+ * Улицу выбрали, дома нет: ещё раз спрашиваем сервис по строке, которая
+ * теперь стоит в поле (владелец уже записал её), и показываем адреса с
+ * номерами. Фокус при выборе мышью остаётся в поле — вернуть его в
+ * состояние «в фокусе» нужно самим: focusin второй раз не придёт.
+ */
+async function offerHouses(street: string) {
+  await nextTick()
+
+  const line = value.value.trim()
+  const input = document.getElementById(fieldId.value)
+
+  if (!line || document.activeElement !== input) {
+    return
+  }
+
+  isFollowUp.value = true
+  followUpStreet.value = street.toLowerCase()
+  isFocused.value = true
+  ask(`${line}, `)
 }
 
 /**
@@ -280,7 +350,7 @@ function onManual() {
 }
 
 function move(step: number) {
-  const total = items.value.length
+  const total = shownItems.value.length
 
   if (total === 0) {
     return
@@ -306,7 +376,7 @@ function onKeydown(event: KeyboardEvent) {
     event.preventDefault()
     move(-1)
   } else if (event.key === 'Enter') {
-    const active = items.value[activeIndex.value]
+    const active = shownItems.value[activeIndex.value]
 
     if (active) {
       event.preventDefault()
