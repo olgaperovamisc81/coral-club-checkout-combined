@@ -176,6 +176,10 @@ export default {
   'address.placeholder': 'Начните вводить ваш адрес',
   'address.manualHint': 'Если вы не смогли найти свой адрес, то введите его вручную',
   'address.manualButton': 'Ввести вручную',
+  // Проверка адреса, введённого руками: «Вы имели в виду <адрес>?» под полем.
+  'address.check.prefix': 'Вы имели в виду',
+  'address.check.suffix': '?',
+  'address.check.postalUnsure': 'Индекс может быть неверным',
   'address.deliveryTime': 'Время доставки',
   'address.dateSample': 'вторник, 18 августа',
   'address.deliveredTo': 'Заказ будет доставлен по адресу',

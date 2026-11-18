@@ -188,6 +188,13 @@ export interface CountryConfig {
   provider: 'dadata' | 'geoapify' | 'loqate' | 'google' | 'twogis' | 'photon'
   address: FieldConfig[]
   recipient: FieldConfig[]
+  /**
+   * Проверять адрес, введённый руками, и предлагать исправление — «Вы имели
+   * в виду …?» под строкой адреса или под индексом, как у Shopify. Не
+   * блокирует оплату: человек может согласиться, а может оставить свой.
+   * Включается по стране, потому что качество сервиса адресов на рынках разное.
+   */
+  addressCheck?: boolean
   /** Варианты для полей типа select (регионы, штаты). */
   regions?: { value: string; label: string }[]
 }

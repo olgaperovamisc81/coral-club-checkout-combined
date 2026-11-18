@@ -176,6 +176,10 @@ export default {
   'address.placeholder': 'Začněte psát adresu',
   'address.manualHint': 'Pokud jste adresu nenašli, zadejte ji ručně',
   'address.manualButton': 'Zadat ručně',
+  // Проверка адреса, введённого руками: «Mysleli jste <адрес>?» под полем.
+  'address.check.prefix': 'Mysleli jste',
+  'address.check.suffix': '?',
+  'address.check.postalUnsure': 'PSČ může být chybné',
   'address.deliveryTime': 'Čas doručení',
   'address.dateSample': 'úterý 18. srpna',
   'address.deliveredTo': 'Objednávka bude doručena na adresu',

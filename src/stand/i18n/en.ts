@@ -178,6 +178,10 @@ export default {
   'address.placeholder': 'Start typing your address',
   'address.manualHint': 'If you could not find your address, enter it manually',
   'address.manualButton': 'Enter manually',
+  // Проверка адреса, введённого руками: «Did you mean <адрес>?» под полем.
+  'address.check.prefix': 'Did you mean',
+  'address.check.suffix': '?',
+  'address.check.postalUnsure': 'ZIP code may be incorrect',
   'address.deliveryTime': 'Delivery time',
   'address.dateSample': 'Tuesday, August 18',
   'address.deliveredTo': 'The order will be delivered to',

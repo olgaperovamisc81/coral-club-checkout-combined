@@ -75,6 +75,19 @@
     />
 
     <span v-if="hint" class="cc3-stand-field__hint">{{ hint }}</span>
+
+    <p v-else-if="fix" class="cc3-stand-field__fix" role="status">
+      <Cc3Icon name="info-circle" :size="20" class="cc3-stand-field__fix-icon" />
+
+      <span v-if="fix.value" class="cc3-stand-field__fix-text">
+        {{ fix.prefix }}
+        <button type="button" class="cc3-stand-field__fix-link" @mousedown.prevent @click="onFix">
+          {{ fix.value }}</button
+        >{{ fix.suffix }}
+      </span>
+
+      <span v-else class="cc3-stand-field__fix-text">{{ fix.note }}</span>
+    </p>
   </div>
 </template>
 
@@ -85,6 +98,7 @@ import Cc3InputField from '@/components/Field/Cc3InputField.vue'
 import Cc3Icon from '@/components/Icon/Cc3Icon.vue'
 
 import type { StandField } from '../config/types'
+import type { AddressFix } from '../composables/useAddressCheck'
 import type { AddressSuggestion, SuggestStatus } from '../suggest/types'
 import { useAddressSuggest } from '../composables/useAddressSuggest'
 import { useStand } from '../composables/useStand'
@@ -141,9 +155,20 @@ const props = defineProps<{
    * Не выбрал дом — больше не навязываем.
    */
   followUp?: boolean
+  /**
+   * Исправление адреса, введённого руками: «Вы имели в виду …?» под полем,
+   * как у Shopify. Решает форма (см. useAddressCheck), поле только
+   * показывает и сообщает о согласии событием fix. Ошибка поля важнее:
+   * пока она есть, исправление не показываем.
+   */
+  fix?: AddressFix
 }>()
 
-const emit = defineEmits<{ select: [suggestion: AddressSuggestion]; manual: [] }>()
+const emit = defineEmits<{
+  select: [suggestion: AddressSuggestion]
+  manual: []
+  fix: []
+}>()
 
 const value = defineModel<string>({ default: '' })
 
@@ -352,6 +377,10 @@ function onManual() {
   emit('manual')
 }
 
+function onFix() {
+  emit('fix')
+}
+
 function move(step: number) {
   const total = shownItems.value.length
 
@@ -496,6 +525,42 @@ const modifiers = computed(() => ({
     color: var(--st-content-foreground-color-neutral-secondary);
   }
 
+  // Исправление адреса: значок, вопрос и сам вариант ссылкой — нажатие
+  // принимает его. Цвет обычной подсказки: это не ошибка, оплату не держит.
+  &__fix {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--st-global-distance-space-inset-sm);
+
+    margin: 0;
+
+    @include font('body-sm');
+
+    color: var(--st-content-foreground-color-neutral-primary);
+  }
+
+  &__fix-icon {
+    flex: none;
+
+    color: var(--st-content-foreground-color-neutral-secondary);
+  }
+
+  &__fix-link {
+    padding: 0;
+
+    font-family: inherit;
+    font-size: inherit;
+    font-weight: 600;
+    line-height: inherit;
+    text-align: start;
+
+    color: inherit;
+    text-decoration: underline;
+    background: none;
+    border: none;
+    cursor: pointer;
+  }
+
   // Подпись под невалидным полем — это текст ошибки, а не подсказка:
   // серым его никто не прочтёт.
   &--invalid &__hint {
@@ -596,7 +661,8 @@ const modifiers = computed(() => ({
     color: transparent;
   }
 
-  &--floating &__hint {
+  &--floating &__hint,
+  &--floating &__fix {
     grid-area: 2 / 1;
 
     margin-block-start: var(--st-global-distance-space-inset-sm);
