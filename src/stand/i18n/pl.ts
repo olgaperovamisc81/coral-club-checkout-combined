@@ -176,6 +176,10 @@ export default {
   'address.placeholder': 'Zacznij wpisywać adres',
   'address.manualHint': 'Jeśli nie udało się znaleźć adresu, wpisz go ręcznie',
   'address.manualButton': 'Wpisz ręcznie',
+  // Проверка адреса, введённого руками: «Czy chodziło o <адрес>?» под полем.
+  'address.check.prefix': 'Czy chodziło o',
+  'address.check.suffix': '?',
+  'address.check.postalUnsure': 'Kod pocztowy może być nieprawidłowy',
   'address.deliveryTime': 'Czas dostawy',
   'address.dateSample': 'wtorek, 18 sierpnia',
   'address.deliveredTo': 'Zamówienie zostanie dostarczone na adres',

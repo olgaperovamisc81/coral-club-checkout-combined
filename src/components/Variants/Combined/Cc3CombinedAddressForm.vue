@@ -4,6 +4,7 @@ import { computed, nextTick, ref, watch } from 'vue'
 import type { MapPoint } from '@/components/Map/mapTypes'
 import { useCourierVariants } from '@/composables/useCourierVariants'
 import Cc3StandField from '@/stand/components/Cc3StandField.vue'
+import { useAddressCheck } from '@/stand/composables/useAddressCheck'
 import { composeAddressLine } from '@/stand/config/addressLine'
 import { useStand } from '@/stand/composables/useStand'
 import { useStandFields } from '@/stand/composables/useStandFields'
@@ -113,6 +114,18 @@ function expand() {
 const mapPoint = ref<MapPoint>()
 const isMapOpen = ref(false)
 
+// «Вы имели в виду …?» под полем, если адрес введён руками (логика в src/stand).
+const { fixes, schedule: scheduleCheck, trust, accept } = useAddressCheck(
+  values,
+  addressFields,
+  isExpanded,
+)
+
+function onFix(key: FieldKey) {
+  values.value = accept(key)
+  isManual.value = false
+}
+
 /**
  * Новый адрес открывается с получателем из профиля, сохранённый — со своими
  * данными: магазин его уже знает, и пустой блок получателя человек читает
@@ -142,6 +155,11 @@ function seedValues() {
 
 seedValues()
 
+// Сохранённый адрес уже проверен — пока его не правят, не переспрашиваем.
+if (props.editProfile) {
+  trust(values.value)
+}
+
 // Смена страны очищает адрес — форма снова начинается с одной строки.
 watch(country, () => {
   seedValues()
@@ -163,6 +181,7 @@ function onSuggestionSelect(suggestion: AddressSuggestion) {
     addressFields.value,
     country.value,
   )
+  trust(values.value)
 
   if (suggestion.lat !== undefined && suggestion.lng !== undefined) {
     mapPoint.value = { lat: suggestion.lat, lng: suggestion.lng }
@@ -199,6 +218,12 @@ function onManualEntry() {
 function onAddressFocusout(key: FieldKey) {
   touch(key)
   expand()
+  scheduleCheck()
+}
+
+function onFieldFocusout(key: FieldKey) {
+  touch(key)
+  scheduleCheck()
 }
 
 function onMapConfirm(payload: { suggestion?: AddressSuggestion; query: string }) {
@@ -327,9 +352,11 @@ watch(
             :field="field"
             :invalid="Boolean(visible[field.key])"
             :error="visible[field.key]"
+            :fix="fixes[field.key]"
             floating
             manual-entry
             follow-up
+            @fix="onFix(field.key)"
             @select="onSuggestionSelect"
             @manual="onManualEntry"
             @focusout="onAddressFocusout(field.key)"
@@ -351,8 +378,10 @@ watch(
           :class="{ 'cc3-combined-address-form__reveal': isRevealAnimated }"
           :invalid="Boolean(visible[field.key])"
           :error="visible[field.key]"
+          :fix="fixes[field.key]"
           floating
-          @focusout="touch(field.key)"
+          @fix="onFix(field.key)"
+          @focusout="onFieldFocusout(field.key)"
         />
       </template>
     </div>

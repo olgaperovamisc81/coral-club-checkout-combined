@@ -113,6 +113,7 @@ export const countries: Record<CountryCode, CountryConfig> = {
     mapCenter: { lat: 55.7522, lng: 37.6156 },
     locale: 'ru',
     provider: 'dadata',
+    addressCheck: true,
     address: ruAddress,
     recipient: cisRecipient,
   },
@@ -127,6 +128,7 @@ export const countries: Record<CountryCode, CountryConfig> = {
     mapCenter: { lat: 43.2389, lng: 76.8897 },
     locale: 'ru',
     provider: 'geoapify',
+    addressCheck: true,
     address: cisAddress,
     recipient: cisRecipient,
   },
@@ -141,6 +143,7 @@ export const countries: Record<CountryCode, CountryConfig> = {
     mapCenter: { lat: 52.52, lng: 13.405 },
     locale: 'de',
     provider: 'geoapify',
+    addressCheck: true,
     address: euAddress,
     recipient: euRecipient,
   },
@@ -155,6 +158,7 @@ export const countries: Record<CountryCode, CountryConfig> = {
     mapCenter: { lat: 52.2297, lng: 21.0122 },
     locale: 'pl',
     provider: 'geoapify',
+    addressCheck: true,
     address: euAddress,
     recipient: euRecipient,
   },
@@ -169,6 +173,7 @@ export const countries: Record<CountryCode, CountryConfig> = {
     mapCenter: { lat: 50.0755, lng: 14.4378 },
     locale: 'cs',
     provider: 'geoapify',
+    addressCheck: true,
     address: euAddress,
     recipient: euRecipient,
   },
@@ -183,6 +188,7 @@ export const countries: Record<CountryCode, CountryConfig> = {
     mapCenter: { lat: 40.7128, lng: -74.006 },
     locale: 'en',
     provider: 'geoapify',
+    addressCheck: true,
     // Номер дома входит в строку адреса — отдельного поля «дом» нет.
     // Город и штат выводятся из ZIP и вручную не вводятся.
     address: [

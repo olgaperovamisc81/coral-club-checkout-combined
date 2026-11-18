@@ -176,6 +176,10 @@ export default {
   'address.placeholder': 'Adresse eingeben',
   'address.manualHint': 'Wenn Sie Ihre Adresse nicht finden, geben Sie sie manuell ein',
   'address.manualButton': 'Manuell eingeben',
+  // Проверка адреса, введённого руками: «Meinten Sie <адрес>?» под полем.
+  'address.check.prefix': 'Meinten Sie',
+  'address.check.suffix': '?',
+  'address.check.postalUnsure': 'Die PLZ ist möglicherweise falsch',
   'address.deliveryTime': 'Lieferzeit',
   'address.dateSample': 'Dienstag, 18. August',
   'address.deliveredTo': 'Die Bestellung wird geliefert an',
